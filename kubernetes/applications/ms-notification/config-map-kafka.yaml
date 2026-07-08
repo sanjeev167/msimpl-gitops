@@ -3,15 +3,16 @@
 # =============================================================================
 # File        : config-map-kafka.yaml
 # Project     : MSIMPL - Microservices Platform
+# Service     : ms-notification
 # Namespace   : msimpl
 # Resource    : ConfigMap
-# Purpose     : Stores shared non-sensitive Apache Kafka configuration used by
-#               all MSIMPL microservices.
+# Purpose     : Stores non-sensitive Apache Kafka configuration specific to the
+#               Notification microservice.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This ConfigMap centralizes common Kafka configuration shared across the
-# platform.
+# This ConfigMap contains Kafka configuration consumed only by the Notification
+# microservice.
 #
 # Typical configuration includes:
 #
@@ -27,7 +28,8 @@
 #   • Function bindings
 #   • Serialization configuration
 #
-# remain inside each microservice.
+# are configured within the Notification microservice and may reference these
+# environment variables.
 #
 # Sensitive information such as:
 #
@@ -47,12 +49,12 @@
 # Compatible With
 # -----------------------------------------------------------------------------
 # - Apache Kafka
-# - Local Kubernetes (Kind / Docker Desktop)
+# - Local Kubernetes (Docker Desktop / Kind)
 # - GitHub Actions
 # - Argo CD
 # - Amazon EKS
 #
-# Version     : 1.1.0 (LOCKED)
+# Version     : 2.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -64,22 +66,21 @@ metadata:
   # ---------------------------------------------------------------------------
   # ConfigMap Name
   #
-  # Referenced by Deployments using:
+  # Referenced by Deployment:
   #
-  #   envFrom:
-  #     configMapRef:
-  #       name: msimpl-kafka-config
+  # envFrom:
+  #   configMapRef:
+  #     name: ms-notification-kafka-config
   # ---------------------------------------------------------------------------
-  name: msimpl-kafka-config
+  name: ms-notification-kafka-config
 
   namespace: msimpl
 
   labels:
 
-    # Standard Kubernetes labels
-    app.kubernetes.io/name: msimpl
+    app.kubernetes.io/name: ms-notification
     app.kubernetes.io/component: kafka-config
-    app.kubernetes.io/part-of: microservices-platform
+    app.kubernetes.io/part-of: msimpl-platform
 
 data:
 
@@ -102,7 +103,7 @@ data:
   # ---------------------------------------------------------------------------
   # Consumer Configuration
   #
-  # Shared defaults for all Kafka consumers.
+  # Default Kafka consumer settings used by the Notification microservice.
   # ---------------------------------------------------------------------------
 
   KAFKA_AUTO_OFFSET_RESET: "earliest"
@@ -112,7 +113,7 @@ data:
   # ---------------------------------------------------------------------------
   # Producer Configuration
   #
-  # Shared defaults for all Kafka producers.
+  # Default Kafka producer settings used by the Notification microservice.
   # ---------------------------------------------------------------------------
 
   KAFKA_ACKS: "all"

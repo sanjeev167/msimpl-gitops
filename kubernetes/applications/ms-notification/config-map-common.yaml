@@ -3,22 +3,23 @@
 # =============================================================================
 # File        : config-map-common.yaml
 # Project     : MSIMPL - Microservices Platform
+# Service     : ms-notification
 # Namespace   : msimpl
 # Resource    : ConfigMap
-# Purpose     : Stores non-sensitive configuration shared by all MSIMPL
-#               microservices.
+# Purpose     : Stores non-sensitive configuration specific to the Notification
+#               microservice.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This ConfigMap contains common application configuration that is consumed by
-# multiple Spring Boot microservices.
+# This ConfigMap contains common application configuration consumed only by
+# the Notification microservice.
 #
 # Typical examples include:
 #
 #   • Logging configuration
-#   • Common feature flags
+#   • Notification-specific feature flags
 #   • Default application settings
-#   • Shared environment variables
+#   • Environment variables
 #
 # This ConfigMap must NEVER contain:
 #
@@ -39,12 +40,12 @@
 #
 # Compatible With
 # -----------------------------------------------------------------------------
-# - Local Kubernetes (Kind / Docker Desktop)
+# - Local Kubernetes (Docker Desktop / Kind)
 # - GitHub Actions
 # - Argo CD
 # - Amazon EKS
 #
-# Version     : 1.1.0 (LOCKED)
+# Version     : 2.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -56,22 +57,21 @@ metadata:
   # ---------------------------------------------------------------------------
   # ConfigMap Name
   #
-  # Referenced by Deployments using:
+  # Referenced by Deployment:
   #
-  #   envFrom:
-  #     configMapRef:
-  #       name: msimpl-common-config
+  # envFrom:
+  #   configMapRef:
+  #     name: ms-notification-common-config
   # ---------------------------------------------------------------------------
-  name: msimpl-common-config
+  name: ms-notification-common-config
 
   namespace: msimpl
 
   labels:
 
-    # Standard Kubernetes labels
-    app.kubernetes.io/name: msimpl
+    app.kubernetes.io/name: ms-notification
     app.kubernetes.io/component: common-config
-    app.kubernetes.io/part-of: microservices-platform
+    app.kubernetes.io/part-of: msimpl-platform
 
 data:
 

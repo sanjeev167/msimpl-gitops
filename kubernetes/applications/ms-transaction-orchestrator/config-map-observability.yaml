@@ -1,37 +1,88 @@
 # =============================================================================
-# Kubernetes ConfigMap
+# Kubernetes ConfigMap Manifest
 # =============================================================================
 # File        : config-map-observability.yaml
 # Project     : MSIMPL - Microservices Platform
-# Purpose     : Shared non-sensitive observability configuration
+# Service     : ms-transaction-orchestrator
 # Namespace   : msimpl
-# Version     : 1.0.0
-# =============================================================================
+# Resource    : ConfigMap
+# Purpose     : Stores non-sensitive observability configuration specific to the
+#               Transaction Orchestrator microservice.
 #
-# Notes
-# -----
-# - Stores shared Spring Boot Actuator and Prometheus settings.
-# - Logging configuration is maintained in config-map-common.yaml.
-# - Sensitive values belong in Kubernetes Secrets.
+# Description
+# -----------------------------------------------------------------------------
+# This ConfigMap contains observability configuration consumed only by the
+# Transaction Orchestrator microservice.
 #
+# Typical configuration includes:
+#
+#   • Spring Boot Actuator settings
+#   • Health endpoint configuration
+#   • Prometheus metrics configuration
+#   • Monitoring-related environment variables
+#
+# Logging configuration is maintained separately in:
+#
+#     config-map-common.yaml
+#
+# Sensitive information such as:
+#
+#   • Monitoring API Keys
+#   • Authentication Tokens
+#   • SSL Certificates
+#
+# must NEVER be stored here.
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# - This manifest is maintained in the MSIMPL GitOps repository.
+# - Argo CD continuously reconciles this ConfigMap with Git.
+# - Any observability configuration change should be committed to Git.
+# - Changes automatically propagate to newly created Pods.
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Spring Boot Actuator
+# - Prometheus
+# - Local Kubernetes (Docker Desktop / Kind)
+# - GitHub Actions
+# - Argo CD
+# - Amazon EKS
+#
+# Version     : 2.0.0 (LOCKED)
+# Author      : Sanjeev Kumar
 # =============================================================================
 
 apiVersion: v1
 kind: ConfigMap
 
 metadata:
-  name: msimpl-observability-config
+
+  # ---------------------------------------------------------------------------
+  # ConfigMap Name
+  #
+  # Referenced by Deployment:
+  #
+  # envFrom:
+  #   configMapRef:
+  #     name: ms-transaction-observability-config
+  # ---------------------------------------------------------------------------
+  name: ms-transaction-observability-config
+
   namespace: msimpl
 
   labels:
-    app.kubernetes.io/name: msimpl
+
+    app.kubernetes.io/name: ms-transaction-orchestrator
     app.kubernetes.io/component: observability-config
-    app.kubernetes.io/part-of: microservices-platform
+    app.kubernetes.io/part-of: msimpl-platform
 
 data:
 
   # ---------------------------------------------------------------------------
   # Spring Boot Actuator
+  #
+  # Exposes actuator endpoints for health monitoring and metrics.
   # ---------------------------------------------------------------------------
 
   MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,prometheus"
@@ -40,6 +91,8 @@ data:
 
   # ---------------------------------------------------------------------------
   # Prometheus Metrics
+  #
+  # Enables Prometheus metrics endpoint for monitoring.
   # ---------------------------------------------------------------------------
 
   MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"

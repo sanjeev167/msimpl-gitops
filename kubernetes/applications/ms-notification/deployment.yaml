@@ -38,7 +38,7 @@
 # - Argo CD
 # - Amazon EKS
 #
-# Version     : 2.1.0 (LOCKED)
+# Version     : 2.2.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -69,12 +69,6 @@ spec:
   # Deployment Strategy
   #
   # RollingUpdate ensures zero/minimal downtime deployment.
-  #
-  # maxSurge:
-  #   Maximum additional Pods created during update.
-  #
-  # maxUnavailable:
-  #   Number of Pods allowed to be unavailable during rollout.
   # ---------------------------------------------------------------------------
   strategy:
     type: RollingUpdate
@@ -107,16 +101,13 @@ spec:
           # -------------------------------------------------------------------
           # GitHub Actions automatically updates ONLY this image tag.
           #
-          # Example
+          # Example:
           #   sanjeev777/ms-notification:v0.0.1-SNAPSHOT-cfbb062
           # -------------------------------------------------------------------
           image: sanjeev777/ms-notification:v0.0.1-SNAPSHOT
 
           # -------------------------------------------------------------------
           # Always pull image from Docker Hub.
-          #
-          # Recommended for GitOps where every deployment uses
-          # a unique immutable image tag.
           # -------------------------------------------------------------------
           imagePullPolicy: Always
 
@@ -127,42 +118,34 @@ spec:
           # -------------------------------------------------------------------
           # Environment Variables
           #
-          # ConfigMaps
-          #   - Common Configuration
-          #   - Database Configuration
-          #   - Kafka Configuration
-          #   - Observability Configuration
-          #
-          # Secrets
-          #   - Database Passwords
-          #   - API Keys
-          #   - Sensitive Credentials
+          # Notification-specific ConfigMaps
           # -------------------------------------------------------------------
           envFrom:
 
+            # Notification Common Configuration
             - configMapRef:
-                name: msimpl-common-config
+                name: ms-notification-common-config
 
+            # Notification Database Configuration
             - configMapRef:
                 name: ms-notification-db-config
 
+            # Notification Kafka Configuration
             - configMapRef:
-                name: msimpl-kafka-config
+                name: ms-notification-kafka-config
 
+            # Notification Observability Configuration
             - configMapRef:
-                name: msimpl-observability-config
+                name: ms-notification-observability-config
 
+            # Notification Secret
+            # (Currently shared. Can later be renamed to
+            # ms-notification-secret.)
             - secretRef:
                 name: msimpl-secret
 
           # -------------------------------------------------------------------
           # Resource Requests & Limits
-          #
-          # Requests
-          #   Guaranteed resources.
-          #
-          # Limits
-          #   Maximum resources allowed.
           # -------------------------------------------------------------------
           resources:
 
@@ -176,11 +159,6 @@ spec:
 
           # -------------------------------------------------------------------
           # Startup Probe
-          #
-          # Used during application startup.
-          #
-          # Kubernetes waits until this probe succeeds before
-          # enabling Readiness and Liveness probes.
           # -------------------------------------------------------------------
           startupProbe:
 
@@ -195,9 +173,6 @@ spec:
 
           # -------------------------------------------------------------------
           # Readiness Probe
-          #
-          # Determines whether the application is ready
-          # to receive traffic.
           # -------------------------------------------------------------------
           readinessProbe:
 
@@ -212,11 +187,6 @@ spec:
 
           # -------------------------------------------------------------------
           # Liveness Probe
-          #
-          # Detects deadlocked or unhealthy applications.
-          #
-          # Kubernetes automatically restarts the container
-          # if this probe repeatedly fails.
           # -------------------------------------------------------------------
           livenessProbe:
 
