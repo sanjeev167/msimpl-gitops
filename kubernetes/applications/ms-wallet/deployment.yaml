@@ -44,27 +44,21 @@
 
 apiVersion: apps/v1
 kind: Deployment
-
 metadata:
   name: ms-wallet
   namespace: msimpl
-
   labels:
     app: ms-wallet
-
 spec:
-
   # ---------------------------------------------------------------------------
   # Number of desired application replicas.
   # Increase in production for High Availability.
   # ---------------------------------------------------------------------------
   replicas: 1
-
   # ---------------------------------------------------------------------------
   # Number of previous ReplicaSets retained for rollback.
   # ---------------------------------------------------------------------------
   revisionHistoryLimit: 5
-
   # ---------------------------------------------------------------------------
   # Deployment Strategy
   #
@@ -78,40 +72,30 @@ spec:
   # ---------------------------------------------------------------------------
   strategy:
     type: RollingUpdate
-
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
-
   selector:
     matchLabels:
       app: ms-wallet
-
   template:
-
     metadata:
       labels:
         app: ms-wallet
-
     spec:
-
       # -----------------------------------------------------------------------
       # Allow Spring Boot to shut down gracefully before Pod termination.
       # -----------------------------------------------------------------------
       terminationGracePeriodSeconds: 30
-
       containers:
-
         - name: ms-wallet
-
           # -------------------------------------------------------------------
           # GitHub Actions automatically updates ONLY this image tag.
           #
           # Example
           #   sanjeev777/ms-wallet:v0.0.1-SNAPSHOT-cfbb062
           # -------------------------------------------------------------------
-          image: sanjeev777/ms-wallet:v0.0.1-SNAPSHOT
-
+          image: sanjeev777/ms-wallet:v0.0.1-SNAPSHOT-12fddac
           # -------------------------------------------------------------------
           # Always pull image from Docker Hub.
           #
@@ -119,11 +103,8 @@ spec:
           # a unique immutable image tag.
           # -------------------------------------------------------------------
           imagePullPolicy: Always
-
           ports:
-
             - containerPort: 8080
-
           # -------------------------------------------------------------------
           # Environment Variables
           #
@@ -139,22 +120,16 @@ spec:
           #   - Sensitive Credentials
           # -------------------------------------------------------------------
           envFrom:
-
             - configMapRef:
                 name: msimpl-common-config
-
             - configMapRef:
                 name: ms-wallet-db-config
-
             - configMapRef:
                 name: msimpl-kafka-config
-
             - configMapRef:
                 name: msimpl-observability-config
-
             - secretRef:
                 name: msimpl-secret
-
           # -------------------------------------------------------------------
           # Resource Requests & Limits
           #
@@ -165,15 +140,12 @@ spec:
           #   Maximum resources allowed.
           # -------------------------------------------------------------------
           resources:
-
             requests:
               cpu: "200m"
               memory: "384Mi"
-
             limits:
               cpu: "500m"
               memory: "768Mi"
-
           # -------------------------------------------------------------------
           # Startup Probe
           #
@@ -183,16 +155,13 @@ spec:
           # enabling Readiness and Liveness probes.
           # -------------------------------------------------------------------
           startupProbe:
-
             httpGet:
               path: /actuator/health
               port: 8080
-
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 30
-
           # -------------------------------------------------------------------
           # Readiness Probe
           #
@@ -200,16 +169,13 @@ spec:
           # to receive traffic.
           # -------------------------------------------------------------------
           readinessProbe:
-
             httpGet:
               path: /actuator/health/readiness
               port: 8080
-
             initialDelaySeconds: 20
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
-
           # -------------------------------------------------------------------
           # Liveness Probe
           #
@@ -219,11 +185,9 @@ spec:
           # if this probe repeatedly fails.
           # -------------------------------------------------------------------
           livenessProbe:
-
             httpGet:
               path: /actuator/health/liveness
               port: 8080
-
             initialDelaySeconds: 60
             periodSeconds: 20
             timeoutSeconds: 5
