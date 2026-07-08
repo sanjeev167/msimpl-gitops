@@ -90,7 +90,7 @@ spec:
           # Example:
           #   sanjeev777/ms-transaction-orchestrator:v0.0.1-SNAPSHOT-cfbb062
           # -------------------------------------------------------------------
-          image: sanjeev777/ms-transaction-orchestrator:v0.0.1-SNAPSHOT-555f59d
+          image: sanjeev777/ms-transaction-orchestrator:v0.0.1-SNAPSHOT-8087bea
           # -------------------------------------------------------------------
           # Always pull image from Docker Hub.
           # -------------------------------------------------------------------
