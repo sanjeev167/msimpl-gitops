@@ -1,30 +1,60 @@
 # =============================================================================
-# Kubernetes Service
+# Kubernetes Service Manifest
 # =============================================================================
-# File        : ms-notification-service.yaml
+# File        : service.yaml
 # Project     : MSIMPL - Microservices Platform
 # Service     : ms-notification
 # Namespace   : msimpl
-# Purpose     : Exposes the Notification microservice within the Kubernetes
-#               cluster using a ClusterIP Service.
-# Version     : 1.0.0
-# =============================================================================
+# Resource    : Service (ClusterIP)
+# Purpose     : Exposes the Notification microservice internally within the
+#               Kubernetes cluster.
 #
-# Notes
-# -----
-# - Internal service accessible only within the Kubernetes cluster.
-# - Uses Kubernetes DNS for service discovery.
-# - Compatible with GitHub Actions, Argo CD and AWS EKS.
+# Description
+# -----------------------------------------------------------------------------
+# This Service provides a stable internal network endpoint for the
+# ms-notification Deployment.
 #
+# Responsibilities
+# -----------------------------------------------------------------------------
+# - Load balances traffic across all healthy Notification Pods.
+# - Provides stable DNS-based service discovery.
+# - Allows communication between Kubernetes microservices.
+# - Used by Ingress to forward external traffic to Notification Pods.
+#
+# Service Discovery
+# -----------------------------------------------------------------------------
+# Kubernetes automatically creates the following DNS entry:
+#
+#     ms-notification.msimpl.svc.cluster.local
+#
+# Other microservices can communicate using:
+#
+#     http://ms-notification:8081
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# - This manifest is maintained in the MSIMPL GitOps repository.
+# - Argo CD continuously monitors this file and reconciles the
+#   live Kubernetes Service with the desired state defined here.
+# - Changes should always be committed to Git rather than
+#   modifying the Service directly in the cluster.
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Local Kubernetes (Docker Desktop / Kind)
+# - GitHub Actions
+# - Argo CD
+# - Amazon EKS
+#
+# Version     : 1.1.0 (LOCKED)
+# Author      : Sanjeev Kumar
 # =============================================================================
 
 apiVersion: v1
 kind: Service
 
 metadata:
-
   name: ms-notification
-
   namespace: msimpl
 
   labels:
@@ -32,15 +62,39 @@ metadata:
 
 spec:
 
+  # ---------------------------------------------------------------------------
+  # ClusterIP
+  #
+  # Creates an internal virtual IP accessible only within the cluster.
+  #
+  # External traffic reaches this Service through the Ingress Controller.
+  # ---------------------------------------------------------------------------
   type: ClusterIP
 
+  # ---------------------------------------------------------------------------
+  # Pod Selector
+  #
+  # Selects every Pod having:
+  #
+  #     app=ms-notification
+  #
+  # These labels must match the Deployment template labels.
+  # ---------------------------------------------------------------------------
   selector:
     app: ms-notification
 
   ports:
 
-    - protocol: TCP
-
+    # -------------------------------------------------------------------------
+    # Service Port
+    #
+    # port
+    #   Port exposed by the Service.
+    #
+    # targetPort
+    #   Container port inside the Pod.
+    # -------------------------------------------------------------------------
+    - name: http
+      protocol: TCP
       port: 8081
-
       targetPort: 8081

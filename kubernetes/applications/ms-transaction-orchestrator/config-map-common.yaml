@@ -1,33 +1,83 @@
 # =============================================================================
-# Kubernetes ConfigMap
+# Kubernetes ConfigMap Manifest
 # =============================================================================
 # File        : config-map-common.yaml
 # Project     : MSIMPL - Microservices Platform
-# Purpose     : Common non-sensitive configuration shared by all microservices
 # Namespace   : msimpl
-# Version     : 1.0.0
-# =============================================================================
+# Resource    : ConfigMap
+# Purpose     : Stores non-sensitive configuration shared by all MSIMPL
+#               microservices.
 #
-# Notes
-# -----
-# - Stores common Spring Boot configuration.
-# - Do not store passwords, tokens or API keys.
-# - Sensitive values belong in Kubernetes Secrets.
+# Description
+# -----------------------------------------------------------------------------
+# This ConfigMap contains common application configuration that is consumed by
+# multiple Spring Boot microservices.
 #
+# Typical examples include:
+#
+#   • Logging configuration
+#   • Common feature flags
+#   • Default application settings
+#   • Shared environment variables
+#
+# This ConfigMap must NEVER contain:
+#
+#   • Passwords
+#   • API Keys
+#   • Tokens
+#   • Certificates
+#
+# Sensitive information belongs in Kubernetes Secrets.
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# - This manifest is maintained in the MSIMPL GitOps repository.
+# - Argo CD continuously monitors this ConfigMap and reconciles the
+#   cluster with the desired state stored in Git.
+# - Any modification should be committed to Git rather than editing the
+#   ConfigMap directly inside Kubernetes.
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Local Kubernetes (Kind / Docker Desktop)
+# - GitHub Actions
+# - Argo CD
+# - Amazon EKS
+#
+# Version     : 1.1.0 (LOCKED)
+# Author      : Sanjeev Kumar
 # =============================================================================
 
 apiVersion: v1
 kind: ConfigMap
 
 metadata:
+
+  # ---------------------------------------------------------------------------
+  # ConfigMap Name
+  #
+  # Referenced by Deployments using:
+  #
+  #   envFrom:
+  #     configMapRef:
+  #       name: msimpl-common-config
+  # ---------------------------------------------------------------------------
   name: msimpl-common-config
+
   namespace: msimpl
 
   labels:
+
+    # Standard Kubernetes labels
     app.kubernetes.io/name: msimpl
     app.kubernetes.io/component: common-config
     app.kubernetes.io/part-of: microservices-platform
 
 data:
 
+  # ---------------------------------------------------------------------------
+  # Default Root Logging Level
+  #
+  # Spring Boot reads this as an environment variable.
+  # ---------------------------------------------------------------------------
   LOG_LEVEL_ROOT: "INFO"

@@ -1,20 +1,45 @@
 # =============================================================================
-# Kubernetes Deployment
+# Kubernetes Deployment Manifest
 # =============================================================================
 # File        : deployment.yaml
 # Project     : MSIMPL - Microservices Platform
 # Service     : ms-notification
 # Namespace   : msimpl
-# Purpose     : Deploy the Notification microservice
-# Version     : 1.0.0
-# =============================================================================
+# Resource    : Deployment
+# Purpose     : Deploys the Notification microservice into the Kubernetes cluster.
 #
-# Notes
-# -----
-# - Uses ConfigMaps and Secrets for externalized configuration.
-# - Configured for local Kind Kubernetes.
-# - Compatible with GitHub Actions, Argo CD and AWS EKS.
+# Description
+# -----------------------------------------------------------------------------
+# This Deployment defines the desired runtime state of the ms-notification
+# microservice. It specifies:
 #
+#   - Number of Pod replicas
+#   - Rolling update deployment strategy
+#   - Docker image to deploy
+#   - Resource requests and limits
+#   - Startup, Readiness and Liveness probes
+#   - Environment configuration using ConfigMaps and Secrets
+#   - Graceful application shutdown
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# - This manifest is maintained in the MSIMPL GitOps repository.
+# - GitHub Actions updates ONLY the Docker image tag after publishing
+#   a new image to Docker Hub.
+# - Argo CD continuously monitors this manifest and reconciles the
+#   Kubernetes cluster with the desired state defined here.
+# - Never edit this Deployment directly inside the Kubernetes cluster.
+#   All deployment changes must originate from Git.
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Local Kubernetes (Docker Desktop / Kind)
+# - GitHub Actions
+# - Argo CD
+# - Amazon EKS
+#
+# Version     : 2.1.0 (LOCKED)
+# Author      : Sanjeev Kumar
 # =============================================================================
 
 apiVersion: apps/v1
@@ -29,7 +54,34 @@ metadata:
 
 spec:
 
+  # ---------------------------------------------------------------------------
+  # Number of desired application replicas.
+  # Increase in production for High Availability.
+  # ---------------------------------------------------------------------------
   replicas: 1
+
+  # ---------------------------------------------------------------------------
+  # Number of previous ReplicaSets retained for rollback.
+  # ---------------------------------------------------------------------------
+  revisionHistoryLimit: 5
+
+  # ---------------------------------------------------------------------------
+  # Deployment Strategy
+  #
+  # RollingUpdate ensures zero/minimal downtime deployment.
+  #
+  # maxSurge:
+  #   Maximum additional Pods created during update.
+  #
+  # maxUnavailable:
+  #   Number of Pods allowed to be unavailable during rollout.
+  # ---------------------------------------------------------------------------
+  strategy:
+    type: RollingUpdate
+
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
 
   selector:
     matchLabels:
@@ -43,17 +95,49 @@ spec:
 
     spec:
 
+      # -----------------------------------------------------------------------
+      # Allow Spring Boot to shut down gracefully before Pod termination.
+      # -----------------------------------------------------------------------
+      terminationGracePeriodSeconds: 30
+
       containers:
 
         - name: ms-notification
 
-          image: sanjeev777/msimpl_dochub:ms-notification-1.0
+          # -------------------------------------------------------------------
+          # GitHub Actions automatically updates ONLY this image tag.
+          #
+          # Example
+          #   sanjeev777/ms-notification:v0.0.1-SNAPSHOT-cfbb062
+          # -------------------------------------------------------------------
+          image: sanjeev777/ms-notification:v0.0.1-SNAPSHOT
 
-          imagePullPolicy: IfNotPresent
+          # -------------------------------------------------------------------
+          # Always pull image from Docker Hub.
+          #
+          # Recommended for GitOps where every deployment uses
+          # a unique immutable image tag.
+          # -------------------------------------------------------------------
+          imagePullPolicy: Always
 
           ports:
+
             - containerPort: 8081
 
+          # -------------------------------------------------------------------
+          # Environment Variables
+          #
+          # ConfigMaps
+          #   - Common Configuration
+          #   - Database Configuration
+          #   - Kafka Configuration
+          #   - Observability Configuration
+          #
+          # Secrets
+          #   - Database Passwords
+          #   - API Keys
+          #   - Sensitive Credentials
+          # -------------------------------------------------------------------
           envFrom:
 
             - configMapRef:
@@ -71,6 +155,15 @@ spec:
             - secretRef:
                 name: msimpl-secret
 
+          # -------------------------------------------------------------------
+          # Resource Requests & Limits
+          #
+          # Requests
+          #   Guaranteed resources.
+          #
+          # Limits
+          #   Maximum resources allowed.
+          # -------------------------------------------------------------------
           resources:
 
             requests:
@@ -81,28 +174,56 @@ spec:
               cpu: "500m"
               memory: "768Mi"
 
+          # -------------------------------------------------------------------
+          # Startup Probe
+          #
+          # Used during application startup.
+          #
+          # Kubernetes waits until this probe succeeds before
+          # enabling Readiness and Liveness probes.
+          # -------------------------------------------------------------------
           startupProbe:
+
             httpGet:
               path: /actuator/health
               port: 8081
+
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 30
 
+          # -------------------------------------------------------------------
+          # Readiness Probe
+          #
+          # Determines whether the application is ready
+          # to receive traffic.
+          # -------------------------------------------------------------------
           readinessProbe:
+
             httpGet:
               path: /actuator/health/readiness
               port: 8081
+
             initialDelaySeconds: 20
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
 
+          # -------------------------------------------------------------------
+          # Liveness Probe
+          #
+          # Detects deadlocked or unhealthy applications.
+          #
+          # Kubernetes automatically restarts the container
+          # if this probe repeatedly fails.
+          # -------------------------------------------------------------------
           livenessProbe:
+
             httpGet:
               path: /actuator/health/liveness
               port: 8081
+
             initialDelaySeconds: 60
             periodSeconds: 20
             timeoutSeconds: 5
