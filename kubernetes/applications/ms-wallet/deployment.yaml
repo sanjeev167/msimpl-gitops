@@ -44,149 +44,113 @@
 
 apiVersion: apps/v1
 kind: Deployment
-
 metadata:
   name: ms-wallet
   namespace: msimpl
-
   labels:
     app: ms-wallet
-
 spec:
-
   # ---------------------------------------------------------------------------
   # Number of desired application replicas.
   # Increase in production for High Availability.
   # ---------------------------------------------------------------------------
   replicas: 1
-
   # ---------------------------------------------------------------------------
   # Number of previous ReplicaSets retained for rollback.
   # ---------------------------------------------------------------------------
   revisionHistoryLimit: 5
-
   # ---------------------------------------------------------------------------
   # Deployment Strategy
   # ---------------------------------------------------------------------------
   strategy:
     type: RollingUpdate
-
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
-
   selector:
     matchLabels:
       app: ms-wallet
-
   template:
-
     metadata:
       labels:
         app: ms-wallet
-
     spec:
-
       # -----------------------------------------------------------------------
       # Allow Spring Boot to shut down gracefully before Pod termination.
       # -----------------------------------------------------------------------
       terminationGracePeriodSeconds: 30
-
       containers:
-
         - name: ms-wallet
-
           # -------------------------------------------------------------------
           # GitHub Actions automatically updates ONLY this image tag.
           # -------------------------------------------------------------------
-          image: sanjeev777/ms-wallet:v0.0.1-SNAPSHOT
-
+          image: sanjeev777/ms-wallet:v0.0.1-SNAPSHOT-8087bea
           # -------------------------------------------------------------------
           # Always pull image from Docker Hub.
           # -------------------------------------------------------------------
           imagePullPolicy: Always
-
           ports:
-
             - containerPort: 8080
-
           # -------------------------------------------------------------------
           # Environment Variables
           #
           # Wallet-specific ConfigMaps
           # -------------------------------------------------------------------
           envFrom:
-
             # Wallet Common Configuration
             - configMapRef:
                 name: ms-wallet-common-config
-
             # Wallet Database Configuration
             - configMapRef:
                 name: ms-wallet-db-config
-
             # Wallet Kafka Configuration
             - configMapRef:
                 name: ms-wallet-kafka-config
-
             # Wallet Observability Configuration
             - configMapRef:
                 name: ms-wallet-observability-config
-
             # Wallet Secret (currently shared)
             - secretRef:
                 name: msimpl-secret
-
           # -------------------------------------------------------------------
           # Resource Requests & Limits
           # -------------------------------------------------------------------
           resources:
-
             requests:
               cpu: "200m"
               memory: "384Mi"
-
             limits:
               cpu: "500m"
               memory: "768Mi"
-
           # -------------------------------------------------------------------
           # Startup Probe
           # -------------------------------------------------------------------
           startupProbe:
-
             httpGet:
               path: /actuator/health
               port: 8080
-
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 30
-
           # -------------------------------------------------------------------
           # Readiness Probe
           # -------------------------------------------------------------------
           readinessProbe:
-
             httpGet:
               path: /actuator/health/readiness
               port: 8080
-
             initialDelaySeconds: 20
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
-
           # -------------------------------------------------------------------
           # Liveness Probe
           # -------------------------------------------------------------------
           livenessProbe:
-
             httpGet:
               path: /actuator/health/liveness
               port: 8080
-
             initialDelaySeconds: 60
             periodSeconds: 20
             timeoutSeconds: 5
