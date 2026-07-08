@@ -44,27 +44,21 @@
 
 apiVersion: apps/v1
 kind: Deployment
-
 metadata:
   name: ms-notification
   namespace: msimpl
-
   labels:
     app: ms-notification
-
 spec:
-
   # ---------------------------------------------------------------------------
   # Number of desired application replicas.
   # Increase in production for High Availability.
   # ---------------------------------------------------------------------------
   replicas: 1
-
   # ---------------------------------------------------------------------------
   # Number of previous ReplicaSets retained for rollback.
   # ---------------------------------------------------------------------------
   revisionHistoryLimit: 5
-
   # ---------------------------------------------------------------------------
   # Deployment Strategy
   #
@@ -72,128 +66,98 @@ spec:
   # ---------------------------------------------------------------------------
   strategy:
     type: RollingUpdate
-
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
-
   selector:
     matchLabels:
       app: ms-notification
-
   template:
-
     metadata:
       labels:
         app: ms-notification
-
     spec:
-
       # -----------------------------------------------------------------------
       # Allow Spring Boot to shut down gracefully before Pod termination.
       # -----------------------------------------------------------------------
       terminationGracePeriodSeconds: 30
-
       containers:
-
         - name: ms-notification
-
           # -------------------------------------------------------------------
           # GitHub Actions automatically updates ONLY this image tag.
           #
           # Example:
           #   sanjeev777/ms-notification:v0.0.1-SNAPSHOT-cfbb062
           # -------------------------------------------------------------------
-          image: sanjeev777/ms-notification:v0.0.1-SNAPSHOT-15bb774
-
+          image: sanjeev777/ms-notification:v0.0.1-SNAPSHOT-555f59d
           # -------------------------------------------------------------------
           # Always pull image from Docker Hub.
           # -------------------------------------------------------------------
           imagePullPolicy: Always
-
           ports:
-
             - containerPort: 8081
-
           # -------------------------------------------------------------------
           # Environment Variables
           #
           # Notification-specific ConfigMaps
           # -------------------------------------------------------------------
           envFrom:
-
             # Notification Common Configuration
             - configMapRef:
                 name: ms-notification-common-config
-
             # Notification Database Configuration
             - configMapRef:
                 name: ms-notification-db-config
-
             # Notification Kafka Configuration
             - configMapRef:
                 name: ms-notification-kafka-config
-
             # Notification Observability Configuration
             - configMapRef:
                 name: ms-notification-observability-config
-
             # Notification Secret
             # (Currently shared. Can later be renamed to
             # ms-notification-secret.)
             - secretRef:
                 name: msimpl-secret
-
           # -------------------------------------------------------------------
           # Resource Requests & Limits
           # -------------------------------------------------------------------
           resources:
-
             requests:
               cpu: "200m"
               memory: "384Mi"
-
             limits:
               cpu: "500m"
               memory: "768Mi"
-
           # -------------------------------------------------------------------
           # Startup Probe
           # -------------------------------------------------------------------
           startupProbe:
-
             httpGet:
               path: /actuator/health
               port: 8081
-
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 30
-
           # -------------------------------------------------------------------
           # Readiness Probe
           # -------------------------------------------------------------------
           readinessProbe:
-
             httpGet:
               path: /actuator/health/readiness
               port: 8081
-
             initialDelaySeconds: 20
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
-
           # -------------------------------------------------------------------
           # Liveness Probe
           # -------------------------------------------------------------------
           livenessProbe:
-
             httpGet:
               path: /actuator/health/liveness
               port: 8081
-
             initialDelaySeconds: 60
             periodSeconds: 20
             timeoutSeconds: 5
