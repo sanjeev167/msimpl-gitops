@@ -104,7 +104,7 @@ spec:
           # Example:
           #   sanjeev777/ms-notification:v0.0.1-SNAPSHOT-cfbb062
           # -------------------------------------------------------------------
-          image: sanjeev777/ms-notification:v0.0.1-SNAPSHOT
+          image: sanjeev777/ms-notification:v0.0.1-SNAPSHOT-15bb774
 
           # -------------------------------------------------------------------
           # Always pull image from Docker Hub.

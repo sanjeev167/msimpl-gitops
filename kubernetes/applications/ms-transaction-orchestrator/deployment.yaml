@@ -105,7 +105,7 @@ spec:
           # Example:
           #   sanjeev777/ms-transaction-orchestrator:v0.0.1-SNAPSHOT-cfbb062
           # -------------------------------------------------------------------
-          image: sanjeev777/ms-transaction-orchestrator:v0.0.1-SNAPSHOT
+          image: sanjeev777/ms-transaction-orchestrator:v0.0.1-SNAPSHOT-15bb774
 
           # -------------------------------------------------------------------
           # Always pull image from Docker Hub.
@@ -147,6 +147,12 @@ spec:
 
           # -------------------------------------------------------------------
           # Resource Requests & Limits
+          #
+          # Requests
+          #   Guaranteed resources.
+          #
+          # Limits
+          #   Maximum resources allowed.
           # -------------------------------------------------------------------
           resources:
 
@@ -160,6 +166,11 @@ spec:
 
           # -------------------------------------------------------------------
           # Startup Probe
+          #
+          # Used during application startup.
+          #
+          # Kubernetes waits until this probe succeeds before
+          # enabling Readiness and Liveness probes.
           # -------------------------------------------------------------------
           startupProbe:
 
@@ -174,6 +185,9 @@ spec:
 
           # -------------------------------------------------------------------
           # Readiness Probe
+          #
+          # Determines whether the application is ready
+          # to receive traffic.
           # -------------------------------------------------------------------
           readinessProbe:
 
@@ -188,6 +202,11 @@ spec:
 
           # -------------------------------------------------------------------
           # Liveness Probe
+          #
+          # Detects deadlocked or unhealthy applications.
+          #
+          # Kubernetes automatically restarts the container
+          # if this probe repeatedly fails.
           # -------------------------------------------------------------------
           livenessProbe:
 
