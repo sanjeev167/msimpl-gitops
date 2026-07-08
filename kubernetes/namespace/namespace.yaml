@@ -1,19 +1,71 @@
 # =============================================================================
-# Kubernetes Namespace
+# Kubernetes Namespace Manifest
 # =============================================================================
 # File        : namespace.yaml
 # Project     : MSIMPL - Microservices Platform
-# Purpose     : Creates the dedicated namespace for all MSIMPL Kubernetes
-#               resources.
-# Version     : 1.0.0
+# Namespace   : msimpl
+# Resource    : Namespace
+# Purpose     : Creates the dedicated Kubernetes namespace for all MSIMPL
+#               microservices and shared infrastructure resources.
+#
+# Description
+# -----------------------------------------------------------------------------
+# A Namespace provides logical isolation within a Kubernetes cluster.
+#
+# All MSIMPL resources are deployed into this namespace, including:
+#
+#   • Deployments
+#   • Services
+#   • ConfigMaps
+#   • Secrets
+#   • Ingress
+#   • Persistent Volumes (where applicable)
+#
+# Keeping application resources inside a dedicated namespace improves:
+#
+#   • Organization
+#   • Security
+#   • Resource management
+#   • Monitoring
+#   • Troubleshooting
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# - This manifest is maintained in the MSIMPL GitOps repository.
+# - Argo CD reconciles this Namespace with the desired state stored in Git.
+# - All MSIMPL applications are deployed into this namespace.
+# - This Namespace should be created before deploying any application resources.
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Local Kubernetes (Kind / Docker Desktop)
+# - GitHub Actions
+# - Argo CD
+# - Amazon EKS
+#
+# Version     : 1.1.0 (LOCKED)
+# Author      : Sanjeev Kumar
 # =============================================================================
 
 apiVersion: v1
 kind: Namespace
 
 metadata:
+
+  # ---------------------------------------------------------------------------
+  # Namespace Name
+  #
+  # All MSIMPL application resources are deployed into this namespace.
+  # ---------------------------------------------------------------------------
   name: msimpl
 
   labels:
+
+    # -------------------------------------------------------------------------
+    # Standard Kubernetes application labels.
+    #
+    # These labels improve discoverability and are used by
+    # Kubernetes tooling, dashboards and monitoring systems.
+    # -------------------------------------------------------------------------
     app.kubernetes.io/name: msimpl
     app.kubernetes.io/part-of: microservices-platform

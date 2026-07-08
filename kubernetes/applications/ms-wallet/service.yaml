@@ -1,0 +1,100 @@
+# =============================================================================
+# Kubernetes Service Manifest
+# =============================================================================
+# File        : service.yaml
+# Project     : MSIMPL - Microservices Platform
+# Service     : ms-wallet
+# Namespace   : msimpl
+# Resource    : Service (ClusterIP)
+# Purpose     : Exposes the Wallet microservice internally within the
+#               Kubernetes cluster.
+#
+# Description
+# -----------------------------------------------------------------------------
+# This Service provides a stable internal network endpoint for the
+# ms-wallet Deployment.
+#
+# Responsibilities
+# -----------------------------------------------------------------------------
+# - Load balances traffic across all healthy Wallet Pods.
+# - Provides stable DNS-based service discovery.
+# - Allows communication between Kubernetes microservices.
+# - Used by Ingress to forward external traffic to Wallet Pods.
+#
+# Service Discovery
+# -----------------------------------------------------------------------------
+# Kubernetes automatically creates the following DNS entry:
+#
+#     ms-wallet.msimpl.svc.cluster.local
+#
+# Other microservices can communicate using:
+#
+#     http://ms-wallet:8080
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# - This manifest is maintained in the MSIMPL GitOps repository.
+# - Argo CD continuously monitors this file and reconciles the
+#   live Kubernetes Service with the desired state defined here.
+# - Changes should always be committed to Git rather than
+#   modifying the Service directly in the cluster.
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Local Kubernetes (Docker Desktop / Kind)
+# - GitHub Actions
+# - Argo CD
+# - Amazon EKS
+#
+# Version     : 1.1.0 (LOCKED)
+# Author      : Sanjeev Kumar
+# =============================================================================
+
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: ms-wallet
+  namespace: msimpl
+
+  labels:
+    app: ms-wallet
+
+spec:
+
+  # ---------------------------------------------------------------------------
+  # ClusterIP
+  #
+  # Creates an internal virtual IP accessible only within the cluster.
+  #
+  # External traffic reaches this Service through the Ingress Controller.
+  # ---------------------------------------------------------------------------
+  type: ClusterIP
+
+  # ---------------------------------------------------------------------------
+  # Pod Selector
+  #
+  # Selects every Pod having:
+  #
+  #     app=ms-wallet
+  #
+  # These labels must match the Deployment template labels.
+  # ---------------------------------------------------------------------------
+  selector:
+    app: ms-wallet
+
+  ports:
+
+    # -------------------------------------------------------------------------
+    # Service Port
+    #
+    # port
+    #   Port exposed by the Service.
+    #
+    # targetPort
+    #   Container port inside the Pod.
+    # -------------------------------------------------------------------------
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080

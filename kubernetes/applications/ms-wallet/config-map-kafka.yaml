@@ -1,0 +1,120 @@
+# =============================================================================
+# Kubernetes ConfigMap Manifest
+# =============================================================================
+# File        : config-map-kafka.yaml
+# Project     : MSIMPL - Microservices Platform
+# Namespace   : msimpl
+# Resource    : ConfigMap
+# Purpose     : Stores shared non-sensitive Apache Kafka configuration used by
+#               all MSIMPL microservices.
+#
+# Description
+# -----------------------------------------------------------------------------
+# This ConfigMap centralizes common Kafka configuration shared across the
+# platform.
+#
+# Typical configuration includes:
+#
+#   • Kafka bootstrap server
+#   • Consumer defaults
+#   • Producer defaults
+#   • Retry configuration
+#
+# Service-specific Kafka settings such as:
+#
+#   • Topic names
+#   • Consumer groups
+#   • Function bindings
+#   • Serialization configuration
+#
+# remain inside each microservice.
+#
+# Sensitive information such as:
+#
+#   • SASL Username
+#   • SASL Password
+#   • SSL Certificates
+#
+# must NEVER be stored here.
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# - This manifest is maintained in the MSIMPL GitOps repository.
+# - Argo CD continuously reconciles this ConfigMap with Git.
+# - Any Kafka configuration change should be committed to Git.
+# - Changes automatically propagate to newly created Pods.
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Apache Kafka
+# - Local Kubernetes (Kind / Docker Desktop)
+# - GitHub Actions
+# - Argo CD
+# - Amazon EKS
+#
+# Version     : 1.1.0 (LOCKED)
+# Author      : Sanjeev Kumar
+# =============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+
+  # ---------------------------------------------------------------------------
+  # ConfigMap Name
+  #
+  # Referenced by Deployments using:
+  #
+  #   envFrom:
+  #     configMapRef:
+  #       name: msimpl-kafka-config
+  # ---------------------------------------------------------------------------
+  name: msimpl-kafka-config
+
+  namespace: msimpl
+
+  labels:
+
+    # Standard Kubernetes labels
+    app.kubernetes.io/name: msimpl
+    app.kubernetes.io/component: kafka-config
+    app.kubernetes.io/part-of: microservices-platform
+
+data:
+
+  # ---------------------------------------------------------------------------
+  # Kafka Bootstrap Server
+  #
+  # Local Development
+  # -----------------
+  # host.docker.internal resolves to the host machine from inside Docker.
+  #
+  # Production
+  # ----------
+  # Replace with the Kafka bootstrap service or external broker address.
+  # ---------------------------------------------------------------------------
+
+  KAFKA_HOST: "host.docker.internal"
+
+  KAFKA_PORT: "9092"
+
+  # ---------------------------------------------------------------------------
+  # Consumer Configuration
+  #
+  # Shared defaults for all Kafka consumers.
+  # ---------------------------------------------------------------------------
+
+  KAFKA_AUTO_OFFSET_RESET: "earliest"
+
+  KAFKA_ENABLE_AUTO_COMMIT: "false"
+
+  # ---------------------------------------------------------------------------
+  # Producer Configuration
+  #
+  # Shared defaults for all Kafka producers.
+  # ---------------------------------------------------------------------------
+
+  KAFKA_ACKS: "all"
+
+  KAFKA_RETRIES: "3"

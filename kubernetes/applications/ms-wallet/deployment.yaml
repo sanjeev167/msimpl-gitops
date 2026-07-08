@@ -1,0 +1,230 @@
+# =============================================================================
+# Kubernetes Deployment Manifest
+# =============================================================================
+# File        : deployment.yaml
+# Project     : MSIMPL - Microservices Platform
+# Service     : ms-wallet
+# Namespace   : msimpl
+# Resource    : Deployment
+# Purpose     : Deploys the Wallet microservice into the Kubernetes cluster.
+#
+# Description
+# -----------------------------------------------------------------------------
+# This Deployment defines the desired runtime state of the ms-wallet
+# microservice. It specifies:
+#
+#   - Number of Pod replicas
+#   - Rolling update deployment strategy
+#   - Docker image to deploy
+#   - Resource requests and limits
+#   - Startup, Readiness and Liveness probes
+#   - Environment configuration using ConfigMaps and Secrets
+#   - Graceful application shutdown
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# - This manifest is maintained in the MSIMPL GitOps repository.
+# - GitHub Actions updates ONLY the Docker image tag after publishing
+#   a new image to Docker Hub.
+# - Argo CD continuously monitors this manifest and reconciles the
+#   Kubernetes cluster with the desired state defined here.
+# - Never edit this Deployment directly inside the Kubernetes cluster.
+#   All deployment changes must originate from Git.
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Local Kubernetes (Docker Desktop / Kind)
+# - GitHub Actions
+# - Argo CD
+# - Amazon EKS
+#
+# Version     : 2.1.0 (LOCKED)
+# Author      : Sanjeev Kumar
+# =============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: ms-wallet
+  namespace: msimpl
+
+  labels:
+    app: ms-wallet
+
+spec:
+
+  # ---------------------------------------------------------------------------
+  # Number of desired application replicas.
+  # Increase in production for High Availability.
+  # ---------------------------------------------------------------------------
+  replicas: 1
+
+  # ---------------------------------------------------------------------------
+  # Number of previous ReplicaSets retained for rollback.
+  # ---------------------------------------------------------------------------
+  revisionHistoryLimit: 5
+
+  # ---------------------------------------------------------------------------
+  # Deployment Strategy
+  #
+  # RollingUpdate ensures zero/minimal downtime deployment.
+  #
+  # maxSurge:
+  #   Maximum additional Pods created during update.
+  #
+  # maxUnavailable:
+  #   Number of Pods allowed to be unavailable during rollout.
+  # ---------------------------------------------------------------------------
+  strategy:
+    type: RollingUpdate
+
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  selector:
+    matchLabels:
+      app: ms-wallet
+
+  template:
+
+    metadata:
+      labels:
+        app: ms-wallet
+
+    spec:
+
+      # -----------------------------------------------------------------------
+      # Allow Spring Boot to shut down gracefully before Pod termination.
+      # -----------------------------------------------------------------------
+      terminationGracePeriodSeconds: 30
+
+      containers:
+
+        - name: ms-wallet
+
+          # -------------------------------------------------------------------
+          # GitHub Actions automatically updates ONLY this image tag.
+          #
+          # Example
+          #   sanjeev777/ms-wallet:v0.0.1-SNAPSHOT-cfbb062
+          # -------------------------------------------------------------------
+          image: sanjeev777/ms-wallet:v0.0.1-SNAPSHOT
+
+          # -------------------------------------------------------------------
+          # Always pull image from Docker Hub.
+          #
+          # Recommended for GitOps where every deployment uses
+          # a unique immutable image tag.
+          # -------------------------------------------------------------------
+          imagePullPolicy: Always
+
+          ports:
+
+            - containerPort: 8080
+
+          # -------------------------------------------------------------------
+          # Environment Variables
+          #
+          # ConfigMaps
+          #   - Common Configuration
+          #   - Database Configuration
+          #   - Kafka Configuration
+          #   - Observability Configuration
+          #
+          # Secrets
+          #   - Database Passwords
+          #   - API Keys
+          #   - Sensitive Credentials
+          # -------------------------------------------------------------------
+          envFrom:
+
+            - configMapRef:
+                name: msimpl-common-config
+
+            - configMapRef:
+                name: ms-wallet-db-config
+
+            - configMapRef:
+                name: msimpl-kafka-config
+
+            - configMapRef:
+                name: msimpl-observability-config
+
+            - secretRef:
+                name: msimpl-secret
+
+          # -------------------------------------------------------------------
+          # Resource Requests & Limits
+          #
+          # Requests
+          #   Guaranteed resources.
+          #
+          # Limits
+          #   Maximum resources allowed.
+          # -------------------------------------------------------------------
+          resources:
+
+            requests:
+              cpu: "200m"
+              memory: "384Mi"
+
+            limits:
+              cpu: "500m"
+              memory: "768Mi"
+
+          # -------------------------------------------------------------------
+          # Startup Probe
+          #
+          # Used during application startup.
+          #
+          # Kubernetes waits until this probe succeeds before
+          # enabling Readiness and Liveness probes.
+          # -------------------------------------------------------------------
+          startupProbe:
+
+            httpGet:
+              path: /actuator/health
+              port: 8080
+
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+
+          # -------------------------------------------------------------------
+          # Readiness Probe
+          #
+          # Determines whether the application is ready
+          # to receive traffic.
+          # -------------------------------------------------------------------
+          readinessProbe:
+
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          # -------------------------------------------------------------------
+          # Liveness Probe
+          #
+          # Detects deadlocked or unhealthy applications.
+          #
+          # Kubernetes automatically restarts the container
+          # if this probe repeatedly fails.
+          # -------------------------------------------------------------------
+          livenessProbe:
+
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
