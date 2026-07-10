@@ -98,4 +98,4 @@ spec:
 
     namespace: argocd
 
-  syncPolicy: {}
+#  syncPolicy: {}
