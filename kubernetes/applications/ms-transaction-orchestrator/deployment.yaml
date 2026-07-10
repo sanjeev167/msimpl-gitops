@@ -64,15 +64,11 @@
 
 apiVersion: apps/v1
 kind: Deployment
-
 metadata:
   name: ms-transaction-orchestrator
-
   labels:
     app: ms-transaction-orchestrator
-
 spec:
-
   # ---------------------------------------------------------------------------
   # Desired number of Pod replicas.
   #
@@ -80,55 +76,40 @@ spec:
   # Kustomize overlays without modifying this Deployment.
   # ---------------------------------------------------------------------------
   replicas: 1
-
   # ---------------------------------------------------------------------------
   # Number of previous ReplicaSets retained for rollback.
   # ---------------------------------------------------------------------------
   revisionHistoryLimit: 5
-
   # ---------------------------------------------------------------------------
   # Rolling Update Strategy
   # ---------------------------------------------------------------------------
   strategy:
     type: RollingUpdate
-
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
-
   selector:
     matchLabels:
       app: ms-transaction-orchestrator
-
   template:
-
     metadata:
       labels:
         app: ms-transaction-orchestrator
-
     spec:
-
       # -----------------------------------------------------------------------
       # Allow Spring Boot to shut down gracefully before Pod termination.
       # -----------------------------------------------------------------------
       terminationGracePeriodSeconds: 30
-
       containers:
-
         - name: ms-transaction-orchestrator
-
           # -------------------------------------------------------------------
           # GitHub Actions automatically updates ONLY the image tag.
           # The same Docker image is deployed to all environments.
           # -------------------------------------------------------------------
-          image: sanjeev777/ms-transaction-orchestrator:v0.0.1-SNAPSHOT-15bb774
-
+          image: sanjeev777/ms-transaction-orchestrator:v0.0.1-SNAPSHOT-fc224fa
           imagePullPolicy: Always
-
           ports:
-
             - containerPort: 8082
-
           # -------------------------------------------------------------------
           # Environment Configuration
           #
@@ -139,77 +120,60 @@ spec:
           # contents differ.
           # -------------------------------------------------------------------
           envFrom:
-
             # Common Configuration
             - configMapRef:
                 name: ms-transaction-common-config
-
             # Database Configuration
             - configMapRef:
                 name: ms-transaction-db-config
-
             # Kafka Configuration
             - configMapRef:
                 name: ms-transaction-kafka-config
-
             # Observability Configuration
             - configMapRef:
                 name: ms-transaction-observability-config
-
             # Sensitive Configuration
             - secretRef:
                 name: msimpl-secret
-
           # -------------------------------------------------------------------
           # Resource Requests & Limits
           # -------------------------------------------------------------------
           resources:
-
             requests:
               cpu: "200m"
               memory: "384Mi"
-
             limits:
               cpu: "500m"
               memory: "768Mi"
-
           # -------------------------------------------------------------------
           # Startup Probe
           # -------------------------------------------------------------------
           startupProbe:
-
             httpGet:
               path: /actuator/health
               port: 8082
-
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 30
-
           # -------------------------------------------------------------------
           # Readiness Probe
           # -------------------------------------------------------------------
           readinessProbe:
-
             httpGet:
               path: /actuator/health/readiness
               port: 8082
-
             initialDelaySeconds: 20
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
-
           # -------------------------------------------------------------------
           # Liveness Probe
           # -------------------------------------------------------------------
           livenessProbe:
-
             httpGet:
               path: /actuator/health/liveness
               port: 8082
-
             initialDelaySeconds: 60
             periodSeconds: 20
             timeoutSeconds: 5
