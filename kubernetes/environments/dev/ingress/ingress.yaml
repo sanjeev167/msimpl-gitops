@@ -13,15 +13,26 @@
 #
 # Description
 # -----------------------------------------------------------------------------
-# This Ingress acts as the single entry point into the MSIMPL platform during
-# Development.
+# This Ingress acts as the single API entry point into the MSIMPL platform
+# during Development.
+#
+# All client requests are routed through the NGINX Ingress Controller and then
+# forwarded to the appropriate internal Kubernetes ClusterIP Service based on
+# the request path.
+#
+# Development URL
+# -----------------------------------------------------------------------------
+#
+# https://api.msimpl.local
+#
 #
 # Responsibilities
 # -----------------------------------------------------------------------------
-# - Receives external HTTP requests.
+# - Receives external client requests.
 # - Performs path-based routing.
-# - Forwards requests to internal ClusterIP Services.
-# - Provides a single endpoint for all MSIMPL microservices.
+# - Routes requests to internal ClusterIP Services.
+# - Provides a single API endpoint for all MSIMPL microservices.
+#
 #
 # Request Flow
 # -----------------------------------------------------------------------------
@@ -29,10 +40,10 @@
 # Browser / Postman
 #         │
 #         ▼
-#      localhost
+# https://api.msimpl.local
 #         │
 #         ▼
-#  NGINX Ingress Controller
+# NGINX Ingress Controller
 #         │
 #         ├────────────► /wallet
 #         │                  │
@@ -49,29 +60,47 @@
 #                            ▼
 #              ms-transaction-orchestrator Service
 #
+#
 # GitOps Notes
 # -----------------------------------------------------------------------------
 # - This Ingress belongs to the Development environment.
-# - Argo CD continuously reconciles this resource with the desired
-#   state stored in Git.
-# - Never edit this Ingress directly inside the Kubernetes cluster.
-#   All changes must originate from Git.
-# - This Ingress is shared by all MSIMPL microservices.
+# - Managed by Argo CD through GitOps.
+# - Never modify this resource directly inside Kubernetes.
+# - All changes must originate from the Git repository.
+# - Shared by all MSIMPL microservices.
+#
+#
+# Environment Notes
+# -----------------------------------------------------------------------------
+# Development
+#     https://api.msimpl.local
+#
+# QA
+#     https://api.qa.msimpl.company.com
+#
+# UAT
+#     https://api.uat.msimpl.company.com
+#
+# Production
+#     https://api.msimpl.company.com
+#
 #
 # Compatible With
 # -----------------------------------------------------------------------------
-# - NGINX Ingress Controller
 # - Docker Desktop Kubernetes
 # - Kind
 # - Amazon EKS
+# - NGINX Ingress Controller
 # - GitHub Actions
 # - Argo CD
 #
-# Version     : 3.0.0 (LOCKED)
+#
+# Version     : 3.1.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
 apiVersion: networking.k8s.io/v1
+
 kind: Ingress
 
 metadata:
@@ -83,26 +112,17 @@ metadata:
     app.kubernetes.io/name: msimpl-ingress
     app.kubernetes.io/component: ingress
     app.kubernetes.io/part-of: msimpl-platform
-   
 
 spec:
 
-  # ---------------------------------------------------------------------------
-  # Use the NGINX Ingress Controller.
-  # ---------------------------------------------------------------------------
   ingressClassName: nginx
 
   rules:
 
     # -------------------------------------------------------------------------
-    # Development host.
-    #
-    # For local Kubernetes the host is localhost.
-    #
-    # QA/UAT/Production overlays should replace this with the appropriate
-    # DNS name (for example: api.msimpl.com).
+    # Development API Host
     # -------------------------------------------------------------------------
-    - host: localhost
+    - host: api.msimpl.local
 
       http:
 

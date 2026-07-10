@@ -1,0 +1,120 @@
+# =============================================================================
+# Kubernetes Ingress Manifest
+# =============================================================================
+# File        : argocd-ingress.yaml
+# Project     : MSIMPL - Microservices Platform
+# Environment : Development (Dev)
+# Namespace   : argocd
+# Resource    : Ingress (NGINX)
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Exposes the Argo CD Web UI through the NGINX Ingress Controller.
+#
+# This Ingress allows administrators and developers to access the Argo CD
+# dashboard using a friendly hostname instead of port-forwarding.
+#
+# Example
+# -----------------------------------------------------------------------------
+#
+# https://argocd.msimpl.local
+#
+#
+# Request Flow
+# -----------------------------------------------------------------------------
+#
+# Browser
+#     │
+#     ▼
+# argocd.msimpl.local
+#     │
+#     ▼
+# NGINX Ingress Controller
+#     │
+#     ▼
+# argocd-server (ClusterIP)
+#     │
+#     ▼
+# Argo CD UI
+#
+#
+# Notes
+# -----------------------------------------------------------------------------
+# - This resource belongs to the infrastructure layer.
+# - It is NOT managed by Argo CD itself.
+# - Apply this manifest manually after installing Argo CD.
+# - Uses HTTPS communication with the argocd-server service.
+#
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# This manifest is stored in Git for version control and documentation.
+#
+# Deployment Sequence:
+#
+# 1. Install Kubernetes
+# 2. Install NGINX Ingress Controller
+# 3. Install Argo CD
+# 4. Apply this Ingress
+# 5. Access Argo CD UI
+# 6. Register Git Repository
+# 7. Deploy MSIMPL Applications
+#
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
+# - NGINX Ingress Controller
+# - Argo CD
+#
+#
+# Version     : 1.0.0
+# Author      : Sanjeev Kumar
+# =============================================================================
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+
+  name: argocd-ingress
+
+  namespace: argocd
+
+  labels:
+
+    app.kubernetes.io/name: argocd-ingress
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/part-of: argocd
+
+  annotations:
+
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+
+spec:
+
+  ingressClassName: nginx
+
+  rules:
+
+    - host: argocd.msimpl.local
+
+      http:
+
+        paths:
+
+          - path: /
+
+            pathType: Prefix
+
+            backend:
+
+              service:
+
+                name: argocd-server
+
+                port:
+
+                  number: 443
