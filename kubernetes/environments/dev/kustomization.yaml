@@ -1,0 +1,77 @@
+# =============================================================================
+# Kustomization Manifest
+# =============================================================================
+# File        : kustomization.yaml
+# Project     : MSIMPL - Microservices Platform
+# Environment : Development (Dev)
+# Resource    : Kustomization
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Defines all Kubernetes resources required to deploy the MSIMPL platform in
+# the Development environment.
+#
+# Description
+# -----------------------------------------------------------------------------
+# This Kustomization assembles all environment-specific manifests for the
+# Development environment.
+#
+# Responsibilities
+# -----------------------------------------------------------------------------
+# - Applies the Development namespace.
+# - Applies common labels.
+# - Deploys the shared Ingress.
+# - Deploys all microservices.
+# - Serves as the deployment entry point for Argo CD.
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# - Argo CD synchronizes this Kustomization from Git.
+# - All Development environment changes must originate from Git.
+# - New microservices should be added to the resources section.
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Kustomize
+# - Argo CD
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
+#
+# Version     : 3.0.0 (LOCKED)
+# Author      : Sanjeev Kumar
+# =============================================================================
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# -----------------------------------------------------------------------------
+# Namespace
+#
+# Applied automatically to all namespaced resources.
+# -----------------------------------------------------------------------------
+namespace: msimpl
+
+# -----------------------------------------------------------------------------
+# Common Labels
+#
+# Applied to every resource in this overlay.
+# -----------------------------------------------------------------------------
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: msimpl-platform
+      app.kubernetes.io/environment: dev
+
+# -----------------------------------------------------------------------------
+# Resources
+# -----------------------------------------------------------------------------
+resources:
+
+  # Shared Resources
+  - namespace.yaml
+  - ingress.yaml
+
+  # Microservices
+  - ms-wallet
+  - ms-notification
+  - ms-transaction-orchestrator

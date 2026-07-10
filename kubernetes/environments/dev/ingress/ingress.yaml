@@ -3,14 +3,18 @@
 # =============================================================================
 # File        : ingress.yaml
 # Project     : MSIMPL - Microservices Platform
-# Namespace   : msimpl
+# Environment : Development (Dev)
 # Resource    : Ingress (NGINX)
-# Purpose     : Exposes MSIMPL microservices to external clients through the
-#               NGINX Ingress Controller.
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Exposes MSIMPL microservices to external clients through the NGINX Ingress
+# Controller in the Development environment.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This Ingress acts as the single entry point into the MSIMPL platform.
+# This Ingress acts as the single entry point into the MSIMPL platform during
+# Development.
 #
 # Responsibilities
 # -----------------------------------------------------------------------------
@@ -47,22 +51,23 @@
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This manifest is maintained in the MSIMPL GitOps repository.
-# - Argo CD continuously monitors this file and reconciles the cluster
-#   with the desired state stored in Git.
+# - This Ingress belongs to the Development environment.
+# - Argo CD continuously reconciles this resource with the desired
+#   state stored in Git.
+# - Never edit this Ingress directly inside the Kubernetes cluster.
+#   All changes must originate from Git.
 # - This Ingress is shared by all MSIMPL microservices.
-# - New microservices should add new routing rules rather than creating
-#   additional Ingress resources (unless there is a functional need).
 #
 # Compatible With
 # -----------------------------------------------------------------------------
 # - NGINX Ingress Controller
-# - Local Kubernetes (Kind / Docker Desktop)
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
 # - GitHub Actions
 # - Argo CD
-# - Amazon EKS (minor host changes may be required)
 #
-# Version     : 1.1.0 (LOCKED)
+# Version     : 3.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -73,7 +78,12 @@ metadata:
 
   name: msimpl-ingress
 
-  namespace: msimpl
+  labels:
+
+    app.kubernetes.io/name: msimpl-ingress
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/part-of: msimpl-platform
+   
 
 spec:
 
@@ -85,13 +95,12 @@ spec:
   rules:
 
     # -------------------------------------------------------------------------
-    # Local development host.
+    # Development host.
     #
-    # In AWS EKS this will typically become:
+    # For local Kubernetes the host is localhost.
     #
-    #     api.msimpl.com
-    #
-    # or another domain managed through DNS.
+    # QA/UAT/Production overlays should replace this with the appropriate
+    # DNS name (for example: api.msimpl.com).
     # -------------------------------------------------------------------------
     - host: localhost
 
@@ -99,9 +108,9 @@ spec:
 
         paths:
 
-          # ---------------------------------------------------------------
+          # -------------------------------------------------------------------
           # Wallet Service
-          # ---------------------------------------------------------------
+          # -------------------------------------------------------------------
           - path: /wallet
             pathType: Prefix
 
@@ -111,9 +120,9 @@ spec:
                 port:
                   number: 8080
 
-          # ---------------------------------------------------------------
+          # -------------------------------------------------------------------
           # Notification Service
-          # ---------------------------------------------------------------
+          # -------------------------------------------------------------------
           - path: /notification
             pathType: Prefix
 
@@ -123,9 +132,9 @@ spec:
                 port:
                   number: 8081
 
-          # ---------------------------------------------------------------
-          # Transaction Orchestrator
-          # ---------------------------------------------------------------
+          # -------------------------------------------------------------------
+          # Transaction Orchestrator Service
+          # -------------------------------------------------------------------
           - path: /transaction
             pathType: Prefix
 

@@ -1,0 +1,93 @@
+# =============================================================================
+# Kubernetes ConfigMap Manifest
+# =============================================================================
+# File        : config-map-db.yaml
+# Project     : MSIMPL - Microservices Platform
+# Environment : Development (Dev)
+# Service     : ms-notification
+# Resource    : ConfigMap
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Stores environment-specific, non-sensitive database configuration for the
+# Notification microservice used in the Development environment.
+#
+# Description
+# -----------------------------------------------------------------------------
+# This ConfigMap contains database connection properties required by the
+# Notification microservice.
+#
+# Typical examples include:
+#
+#   • Database Host
+#   • Database Port
+#   • Database Name
+#
+# This ConfigMap must NEVER contain:
+#
+#   • Database Username
+#   • Database Password
+#   • Connection Secrets
+#
+# Sensitive database credentials must be stored in Kubernetes Secrets.
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# - This ConfigMap belongs to the Development environment.
+# - Argo CD continuously reconciles this resource with the desired
+#   state stored in Git.
+# - Never edit this ConfigMap directly inside the Kubernetes cluster.
+#   All changes must originate from Git.
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
+# - GitHub Actions
+# - Argo CD
+#
+# Version     : 3.0.0 (LOCKED)
+# Author      : Sanjeev Kumar
+# =============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+
+  # ---------------------------------------------------------------------------
+  # ConfigMap Name
+  #
+  # Referenced by:
+  #
+  # Deployment
+  #   envFrom:
+  #     configMapRef:
+  #       name: ms-notification-db-config
+  # ---------------------------------------------------------------------------
+  name: ms-notification-db-config
+
+  labels:
+
+    app.kubernetes.io/name: ms-notification
+    app.kubernetes.io/component: database-config
+    app.kubernetes.io/part-of: msimpl-platform
+    
+
+data:
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database Host
+  # ---------------------------------------------------------------------------
+  DB_HOST: "host.docker.internal"
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database Port
+  # ---------------------------------------------------------------------------
+  DB_PORT: "5432"
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database Name
+  # ---------------------------------------------------------------------------
+  DB_NAME: "notification_db"

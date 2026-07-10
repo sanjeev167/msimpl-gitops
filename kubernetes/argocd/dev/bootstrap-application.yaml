@@ -1,0 +1,101 @@
+# =============================================================================
+# Argo CD Bootstrap Application Manifest
+# =============================================================================
+# File        : bootstrap-application.yaml
+# Project     : MSIMPL - Microservices Platform
+# Environment : Development (Dev)
+# Application : MSIMPL Development Bootstrap
+# Namespace   : argocd
+# Resource    : Argo CD Application
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Bootstraps the complete MSIMPL Development environment.
+#
+# Description
+# -----------------------------------------------------------------------------
+# This Bootstrap Application is the parent Application (App of Apps).
+#
+# It is responsible for creating and managing all Argo CD Applications
+# required for the Development environment.
+#
+# Child Applications
+# -----------------------------------------------------------------------------
+# • ms-wallet
+# • ms-notification
+# • ms-transaction-orchestrator
+#
+# Once this Bootstrap Application is created, Argo CD automatically creates
+# and manages all child Applications defined under:
+#
+#     argocd/dev/
+#
+# GitOps Flow
+# -----------------------------------------------------------------------------
+#
+# kubectl apply bootstrap-application.yaml
+#                 │
+#                 ▼
+#        Bootstrap Application
+#                 │
+#                 ▼
+#          argocd/dev/
+#                 │
+#                 ▼
+#     Child Application Manifests
+#                 │
+#      ┌──────────┼──────────┐
+#      ▼          ▼          ▼
+#  ms-wallet  ms-notification  ms-transaction-orchestrator
+#      │          │          │
+#      ▼          ▼          ▼
+# Kubernetes Resources
+#
+# Notes
+# -----------------------------------------------------------------------------
+# • This is the only Application that should be created manually.
+# • All child Applications are created automatically by Argo CD.
+# • The child Applications deploy the Kubernetes manifests from:
+#
+#     kubernetes/environments/dev/
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Argo CD 2.x+
+# - Kustomize
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
+#
+# Version     : 1.0.0 (LOCKED)
+# Author      : Sanjeev Kumar
+# =============================================================================
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+
+  name: msimpl-dev-bootstrap
+
+  namespace: argocd
+
+spec:
+
+  project: default
+
+  source:
+
+    repoURL: https://github.com/sanjeev167/msimpl-gitops.git
+
+    targetRevision: main
+
+    path: argocd/dev
+
+  destination:
+
+    server: https://kubernetes.default.svc
+
+    namespace: argocd
+
+  syncPolicy: {}

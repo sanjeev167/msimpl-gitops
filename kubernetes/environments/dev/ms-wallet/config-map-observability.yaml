@@ -3,20 +3,23 @@
 # =============================================================================
 # File        : config-map-observability.yaml
 # Project     : MSIMPL - Microservices Platform
+# Environment : Development (Dev)
 # Service     : ms-wallet
-# Namespace   : msimpl
 # Resource    : ConfigMap
-# Purpose     : Stores non-sensitive observability configuration specific to the
-#               Wallet microservice.
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Stores environment-specific, non-sensitive observability configuration for
+# the Wallet microservice used in the Development environment.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This ConfigMap contains observability configuration consumed only by the
-# Wallet microservice.
+# This ConfigMap contains monitoring and observability configuration consumed
+# by the Wallet microservice.
 #
 # Typical configuration includes:
 #
-#   • Spring Boot Actuator settings
+#   • Spring Boot Actuator configuration
 #   • Health endpoint configuration
 #   • Prometheus metrics configuration
 #   • Monitoring-related environment variables
@@ -25,31 +28,33 @@
 #
 #     config-map-common.yaml
 #
-# Sensitive information such as:
+# This ConfigMap must NEVER contain:
 #
 #   • Monitoring API Keys
 #   • Authentication Tokens
 #   • SSL Certificates
 #
-# must NEVER be stored here.
+# Sensitive information must be stored in Kubernetes Secrets.
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This manifest is maintained in the MSIMPL GitOps repository.
-# - Argo CD continuously reconciles this ConfigMap with Git.
-# - Any observability configuration change should be committed to Git.
-# - Changes automatically propagate to newly created Pods.
+# - This ConfigMap belongs to the Development environment.
+# - Argo CD continuously reconciles this resource with the desired
+#   state stored in Git.
+# - Never edit this ConfigMap directly inside the Kubernetes cluster.
+#   All changes must originate from Git.
 #
 # Compatible With
 # -----------------------------------------------------------------------------
 # - Spring Boot Actuator
 # - Prometheus
-# - Local Kubernetes (Docker Desktop / Kind)
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
 # - GitHub Actions
 # - Argo CD
-# - Amazon EKS
 #
-# Version     : 2.0.0 (LOCKED)
+# Version     : 3.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -61,30 +66,30 @@ metadata:
   # ---------------------------------------------------------------------------
   # ConfigMap Name
   #
-  # Referenced by Deployment:
+  # Referenced by:
   #
-  # envFrom:
-  #   configMapRef:
-  #     name: ms-wallet-observability-config
+  # Deployment
+  #   envFrom:
+  #     configMapRef:
+  #       name: ms-wallet-observability-config
   # ---------------------------------------------------------------------------
   name: ms-wallet-observability-config
-
-  namespace: msimpl
 
   labels:
 
     app.kubernetes.io/name: ms-wallet
     app.kubernetes.io/component: observability-config
     app.kubernetes.io/part-of: msimpl-platform
+    
 
 data:
 
   # ---------------------------------------------------------------------------
   # Spring Boot Actuator
   #
-  # Exposes actuator endpoints for health monitoring and metrics.
+  # Exposes health, information and Prometheus metrics endpoints used by
+  # Kubernetes probes and monitoring tools.
   # ---------------------------------------------------------------------------
-
   MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,prometheus"
 
   MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: "always"
@@ -92,7 +97,10 @@ data:
   # ---------------------------------------------------------------------------
   # Prometheus Metrics
   #
-  # Enables Prometheus metrics endpoint for monitoring.
+  # Enables the Prometheus metrics endpoint:
+  #
+  #     /actuator/prometheus
+  #
+  # for metrics collection.
   # ---------------------------------------------------------------------------
-
   MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"

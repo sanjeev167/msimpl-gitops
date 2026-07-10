@@ -1,13 +1,17 @@
 # =============================================================================
 # Argo CD Application Manifest
 # =============================================================================
-# File        : ms-wallet-application.yaml
+# File        : ms-notification-application.yaml
 # Project     : MSIMPL - Microservices Platform
-# Application : ms-wallet
+# Environment : Development (Dev)
+# Application : ms-notification
 # Namespace   : argocd
 # Resource    : Argo CD Application
-# Purpose     : Registers the Wallet microservice with Argo CD for GitOps
-#               deployment and continuous reconciliation.
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Registers the Notification microservice with Argo CD for GitOps deployment
+# and continuous reconciliation in the Development environment.
 #
 # Description
 # -----------------------------------------------------------------------------
@@ -15,7 +19,7 @@
 #
 #   • Which Git repository contains the Kubernetes manifests.
 #   • Which Git branch to monitor.
-#   • Which folder contains the application manifests.
+#   • Which Development environment folder contains the Kustomize manifests.
 #   • Which Kubernetes cluster to deploy to.
 #   • Which namespace to deploy into.
 #
@@ -56,7 +60,10 @@
 # • This file defines ONLY the Argo CD Application.
 # • The actual Kubernetes manifests are stored under:
 #
-#       kubernetes/applications/ms-wallet
+#       kubernetes/environments/dev/ms-notification
+#
+# • The target folder contains a Kustomization manifest that assembles all
+#   resources required for the Notification microservice.
 #
 # • During Module 4 we will use Manual Sync.
 # • Automatic Sync, Self-Heal and Prune will be enabled in Module 5.
@@ -64,10 +71,12 @@
 # Compatible With
 # -----------------------------------------------------------------------------
 # - Argo CD 2.x+
-# - Local Kubernetes (Kind / Docker Desktop)
+# - Kustomize
+# - Docker Desktop Kubernetes
+# - Kind
 # - Amazon EKS
 #
-# Version     : 1.1.0 (LOCKED)
+# Version     : 2.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -81,7 +90,7 @@ metadata:
   #
   # This name appears in the Argo CD UI.
   # ---------------------------------------------------------------------------
-  name: ms-wallet
+  name: ms-notification
 
   # ---------------------------------------------------------------------------
   # The Application CR itself is stored inside the argocd namespace.
@@ -116,9 +125,9 @@ spec:
     targetRevision: main
 
     # -------------------------------------------------------------------------
-    # Directory containing Kubernetes manifests.
+    # Directory containing the Development environment Kustomize manifests.
     # -------------------------------------------------------------------------
-    path: kubernetes/applications/ms-wallet
+    path: kubernetes/environments/dev/ms-notification
 
   destination:
 
@@ -133,8 +142,7 @@ spec:
     # -------------------------------------------------------------------------
     # Target namespace for application deployment.
     #
-    # All manifests inside the application folder will be
-    # deployed into this namespace.
+    # The Development Kustomization also specifies this namespace.
     # -------------------------------------------------------------------------
     namespace: msimpl
 

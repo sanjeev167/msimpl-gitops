@@ -4,42 +4,61 @@
 # File        : deployment.yaml
 # Project     : MSIMPL - Microservices Platform
 # Service     : ms-transaction-orchestrator
-# Namespace   : msimpl
 # Resource    : Deployment
-# Purpose     : Deploys the Transaction Orchestrator microservice into the
-#               Kubernetes cluster.
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Defines the common Deployment for the Transaction Orchestrator microservice.
+#
+# This Deployment is environment-independent and is reused across
+# Development, QA, UAT and Production.
+#
+# Environment-specific configuration such as:
+#
+#   - Namespace
+#   - Database Configuration
+#   - Kafka Configuration
+#   - Secrets
+#   - Ingress
+#
+# is supplied from:
+#
+# kubernetes/environments/<environment>/
 #
 # Description
 # -----------------------------------------------------------------------------
 # This Deployment defines the desired runtime state of the
-# ms-transaction-orchestrator microservice. It specifies:
+# Transaction Orchestrator microservice.
 #
-#   - Number of Pod replicas
-#   - Rolling update deployment strategy
-#   - Docker image to deploy
-#   - Resource requests and limits
+# It specifies:
+#
+#   - Desired Pod replicas
+#   - Rolling Update deployment strategy
+#   - Docker image
+#   - Resource requests & limits
 #   - Startup, Readiness and Liveness probes
-#   - Environment configuration using ConfigMaps and Secrets
+#   - ConfigMaps and Secrets
 #   - Graceful application shutdown
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This manifest is maintained in the MSIMPL GitOps repository.
+# - This Deployment is common for all environments.
 # - GitHub Actions updates ONLY the Docker image tag after publishing
 #   a new image to Docker Hub.
-# - Argo CD continuously monitors this manifest and reconciles the
-#   Kubernetes cluster with the desired state defined here.
-# - Never edit this Deployment directly inside the Kubernetes cluster.
+# - Argo CD deploys this Deployment using the configuration supplied
+#   by the selected environment.
+# - Never modify this resource directly inside the Kubernetes cluster.
 #   All deployment changes must originate from Git.
 #
 # Compatible With
 # -----------------------------------------------------------------------------
-# - Local Kubernetes (Docker Desktop / Kind)
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
 # - GitHub Actions
 # - Argo CD
-# - Amazon EKS
 #
-# Version     : 2.2.0 (LOCKED)
+# Version     : 3.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -48,7 +67,6 @@ kind: Deployment
 
 metadata:
   name: ms-transaction-orchestrator
-  namespace: msimpl
 
   labels:
     app: ms-transaction-orchestrator
@@ -56,8 +74,10 @@ metadata:
 spec:
 
   # ---------------------------------------------------------------------------
-  # Number of desired application replicas.
-  # Increase in production for High Availability.
+  # Desired number of Pod replicas.
+  #
+  # Environment-specific replica counts may be overridden later through
+  # Kustomize overlays without modifying this Deployment.
   # ---------------------------------------------------------------------------
   replicas: 1
 
@@ -67,9 +87,7 @@ spec:
   revisionHistoryLimit: 5
 
   # ---------------------------------------------------------------------------
-  # Deployment Strategy
-  #
-  # RollingUpdate ensures zero/minimal downtime deployment.
+  # Rolling Update Strategy
   # ---------------------------------------------------------------------------
   strategy:
     type: RollingUpdate
@@ -100,16 +118,11 @@ spec:
         - name: ms-transaction-orchestrator
 
           # -------------------------------------------------------------------
-          # GitHub Actions automatically updates ONLY this image tag.
-          #
-          # Example:
-          #   sanjeev777/ms-transaction-orchestrator:v0.0.1-SNAPSHOT-cfbb062
+          # GitHub Actions automatically updates ONLY the image tag.
+          # The same Docker image is deployed to all environments.
           # -------------------------------------------------------------------
           image: sanjeev777/ms-transaction-orchestrator:v0.0.1-SNAPSHOT-15bb774
 
-          # -------------------------------------------------------------------
-          # Always pull image from Docker Hub.
-          # -------------------------------------------------------------------
           imagePullPolicy: Always
 
           ports:
@@ -117,42 +130,38 @@ spec:
             - containerPort: 8082
 
           # -------------------------------------------------------------------
-          # Environment Variables
+          # Environment Configuration
           #
-          # Transaction Orchestrator-specific ConfigMaps
+          # The ConfigMaps and Secrets referenced below are supplied by the
+          # selected deployment environment (Dev / QA / UAT / Prod).
+          #
+          # Their names remain identical across environments while their
+          # contents differ.
           # -------------------------------------------------------------------
           envFrom:
 
-            # Transaction Orchestrator Common Configuration
+            # Common Configuration
             - configMapRef:
                 name: ms-transaction-common-config
 
-            # Transaction Orchestrator Database Configuration
+            # Database Configuration
             - configMapRef:
                 name: ms-transaction-db-config
 
-            # Transaction Orchestrator Kafka Configuration
+            # Kafka Configuration
             - configMapRef:
                 name: ms-transaction-kafka-config
 
-            # Transaction Orchestrator Observability Configuration
+            # Observability Configuration
             - configMapRef:
                 name: ms-transaction-observability-config
 
-            # Transaction Orchestrator Secret
-            # (Currently shared. Can later be renamed to
-            # ms-transaction-secret.)
+            # Sensitive Configuration
             - secretRef:
                 name: msimpl-secret
 
           # -------------------------------------------------------------------
           # Resource Requests & Limits
-          #
-          # Requests
-          #   Guaranteed resources.
-          #
-          # Limits
-          #   Maximum resources allowed.
           # -------------------------------------------------------------------
           resources:
 
@@ -166,11 +175,6 @@ spec:
 
           # -------------------------------------------------------------------
           # Startup Probe
-          #
-          # Used during application startup.
-          #
-          # Kubernetes waits until this probe succeeds before
-          # enabling Readiness and Liveness probes.
           # -------------------------------------------------------------------
           startupProbe:
 
@@ -185,9 +189,6 @@ spec:
 
           # -------------------------------------------------------------------
           # Readiness Probe
-          #
-          # Determines whether the application is ready
-          # to receive traffic.
           # -------------------------------------------------------------------
           readinessProbe:
 
@@ -202,11 +203,6 @@ spec:
 
           # -------------------------------------------------------------------
           # Liveness Probe
-          #
-          # Detects deadlocked or unhealthy applications.
-          #
-          # Kubernetes automatically restarts the container
-          # if this probe repeatedly fails.
           # -------------------------------------------------------------------
           livenessProbe:
 

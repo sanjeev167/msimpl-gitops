@@ -4,41 +4,60 @@
 # File        : deployment.yaml
 # Project     : MSIMPL - Microservices Platform
 # Service     : ms-wallet
-# Namespace   : msimpl
 # Resource    : Deployment
-# Purpose     : Deploys the Wallet microservice into the Kubernetes cluster.
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Defines the common Deployment for the Wallet microservice.
+#
+# This Deployment is environment-independent and is reused across
+# Development, QA, UAT and Production.
+#
+# Environment-specific configuration such as:
+#
+#   - Namespace
+#   - Database Configuration
+#   - Kafka Configuration
+#   - Secrets
+#   - Ingress
+#
+# is supplied from:
+#
+# kubernetes/environments/<environment>/
 #
 # Description
 # -----------------------------------------------------------------------------
-# This Deployment defines the desired runtime state of the ms-wallet
-# microservice. It specifies:
+# This Deployment defines the desired runtime state of the Wallet microservice.
 #
-#   - Number of Pod replicas
-#   - Rolling update deployment strategy
-#   - Docker image to deploy
-#   - Resource requests and limits
+# It specifies:
+#
+#   - Desired Pod replicas
+#   - Rolling Update deployment strategy
+#   - Docker image
+#   - Resource requests & limits
 #   - Startup, Readiness and Liveness probes
-#   - Environment configuration using ConfigMaps and Secrets
+#   - ConfigMaps and Secrets
 #   - Graceful application shutdown
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This manifest is maintained in the MSIMPL GitOps repository.
+# - This Deployment is common for all environments.
 # - GitHub Actions updates ONLY the Docker image tag after publishing
 #   a new image to Docker Hub.
-# - Argo CD continuously monitors this manifest and reconciles the
-#   Kubernetes cluster with the desired state defined here.
-# - Never edit this Deployment directly inside the Kubernetes cluster.
+# - Argo CD deploys this Deployment using the configuration supplied
+#   by the selected environment.
+# - Never modify this resource directly inside the Kubernetes cluster.
 #   All deployment changes must originate from Git.
 #
 # Compatible With
 # -----------------------------------------------------------------------------
-# - Local Kubernetes (Docker Desktop / Kind)
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
 # - GitHub Actions
 # - Argo CD
-# - Amazon EKS
 #
-# Version     : 2.2.0 (LOCKED)
+# Version     : 3.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -47,7 +66,6 @@ kind: Deployment
 
 metadata:
   name: ms-wallet
-  namespace: msimpl
 
   labels:
     app: ms-wallet
@@ -55,8 +73,10 @@ metadata:
 spec:
 
   # ---------------------------------------------------------------------------
-  # Number of desired application replicas.
-  # Increase in production for High Availability.
+  # Desired number of Pod replicas.
+  #
+  # Environment-specific replica counts may be overridden later through
+  # Kustomize overlays without modifying this Deployment.
   # ---------------------------------------------------------------------------
   replicas: 1
 
@@ -66,7 +86,7 @@ spec:
   revisionHistoryLimit: 5
 
   # ---------------------------------------------------------------------------
-  # Deployment Strategy
+  # Rolling Update Strategy
   # ---------------------------------------------------------------------------
   strategy:
     type: RollingUpdate
@@ -97,13 +117,11 @@ spec:
         - name: ms-wallet
 
           # -------------------------------------------------------------------
-          # GitHub Actions automatically updates ONLY this image tag.
+          # GitHub Actions automatically updates ONLY the image tag.
+          # The same Docker image is deployed to all environments.
           # -------------------------------------------------------------------
           image: sanjeev777/ms-wallet:v0.0.1-SNAPSHOT
 
-          # -------------------------------------------------------------------
-          # Always pull image from Docker Hub.
-          # -------------------------------------------------------------------
           imagePullPolicy: Always
 
           ports:
@@ -111,29 +129,33 @@ spec:
             - containerPort: 8080
 
           # -------------------------------------------------------------------
-          # Environment Variables
+          # Environment Configuration
           #
-          # Wallet-specific ConfigMaps
+          # The ConfigMaps and Secrets referenced below are supplied by the
+          # selected deployment environment (Dev / QA / UAT / Prod).
+          #
+          # Their names remain identical across environments while their
+          # contents differ.
           # -------------------------------------------------------------------
           envFrom:
 
-            # Wallet Common Configuration
+            # Common Configuration
             - configMapRef:
                 name: ms-wallet-common-config
 
-            # Wallet Database Configuration
+            # Database Configuration
             - configMapRef:
                 name: ms-wallet-db-config
 
-            # Wallet Kafka Configuration
+            # Kafka Configuration
             - configMapRef:
                 name: ms-wallet-kafka-config
 
-            # Wallet Observability Configuration
+            # Observability Configuration
             - configMapRef:
                 name: ms-wallet-observability-config
 
-            # Wallet Secret (currently shared)
+            # Sensitive Configuration
             - secretRef:
                 name: msimpl-secret
 

@@ -3,58 +3,65 @@
 # =============================================================================
 # File        : config-map-kafka.yaml
 # Project     : MSIMPL - Microservices Platform
+# Environment : Development (Dev)
 # Service     : ms-wallet
-# Namespace   : msimpl
 # Resource    : ConfigMap
-# Purpose     : Stores non-sensitive Apache Kafka configuration specific to the
-#               Wallet microservice.
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Stores environment-specific, non-sensitive Apache Kafka configuration for the
+# Wallet microservice used in the Development environment.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This ConfigMap contains Kafka configuration consumed only by the Wallet
-# microservice.
+# This ConfigMap contains Kafka connection and default client configuration
+# consumed by the Wallet microservice.
 #
 # Typical configuration includes:
 #
-#   • Kafka bootstrap server
-#   • Consumer defaults
-#   • Producer defaults
-#   • Retry configuration
+#   • Kafka Bootstrap Host
+#   • Kafka Bootstrap Port
+#   • Consumer Defaults
+#   • Producer Defaults
+#   • Retry Configuration
 #
-# Service-specific Kafka settings such as:
+# Service-specific Kafka configuration such as:
 #
-#   • Topic names
-#   • Consumer groups
-#   • Function bindings
-#   • Serialization configuration
+#   • Topic Names
+#   • Consumer Groups
+#   • Function Bindings
+#   • Serialization Configuration
 #
-# are configured within the Wallet microservice and may reference these
-# environment variables.
+# remains inside the Wallet application and references these environment
+# variables where required.
 #
-# Sensitive information such as:
+# This ConfigMap must NEVER contain:
 #
 #   • SASL Username
 #   • SASL Password
 #   • SSL Certificates
+#   • Authentication Tokens
 #
-# must NEVER be stored here.
+# Sensitive information must be stored in Kubernetes Secrets.
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This manifest is maintained in the MSIMPL GitOps repository.
-# - Argo CD continuously reconciles this ConfigMap with Git.
-# - Any Kafka configuration change should be committed to Git.
-# - Changes automatically propagate to newly created Pods.
+# - This ConfigMap belongs to the Development environment.
+# - Argo CD continuously reconciles this resource with the desired
+#   state stored in Git.
+# - Never edit this ConfigMap directly inside the Kubernetes cluster.
+#   All changes must originate from Git.
 #
 # Compatible With
 # -----------------------------------------------------------------------------
 # - Apache Kafka
-# - Local Kubernetes (Docker Desktop / Kind)
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
 # - GitHub Actions
 # - Argo CD
-# - Amazon EKS
 #
-# Version     : 2.0.0 (LOCKED)
+# Version     : 3.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -66,43 +73,48 @@ metadata:
   # ---------------------------------------------------------------------------
   # ConfigMap Name
   #
-  # Referenced by Deployment:
+  # Referenced by:
   #
-  # envFrom:
-  #   configMapRef:
-  #     name: ms-wallet-kafka-config
+  # Deployment
+  #   envFrom:
+  #     configMapRef:
+  #       name: ms-wallet-kafka-config
   # ---------------------------------------------------------------------------
   name: ms-wallet-kafka-config
-
-  namespace: msimpl
 
   labels:
 
     app.kubernetes.io/name: ms-wallet
     app.kubernetes.io/component: kafka-config
     app.kubernetes.io/part-of: msimpl-platform
+    
 
 data:
 
   # ---------------------------------------------------------------------------
-  # Kafka Bootstrap Server
+  # Kafka Bootstrap Host
   #
-  # Local Development
-  # -----------------
-  # host.docker.internal resolves to the host machine from inside Docker.
+  # Development
+  # -----------
+  # host.docker.internal resolves to the Docker Desktop host where Kafka
+  # is currently running.
   #
-  # Production
-  # ----------
-  # Replace with the Kafka bootstrap service or external broker address.
+  # QA / UAT / Production
+  # ---------------------
+  # Replace with the Kafka bootstrap service or broker address for the
+  # respective environment.
   # ---------------------------------------------------------------------------
   KAFKA_HOST: "host.docker.internal"
 
+  # ---------------------------------------------------------------------------
+  # Kafka Bootstrap Port
+  # ---------------------------------------------------------------------------
   KAFKA_PORT: "9092"
 
   # ---------------------------------------------------------------------------
   # Consumer Configuration
   #
-  # Default Kafka consumer settings used by the Wallet microservice.
+  # Default Kafka consumer behaviour.
   # ---------------------------------------------------------------------------
   KAFKA_AUTO_OFFSET_RESET: "earliest"
 
@@ -111,7 +123,7 @@ data:
   # ---------------------------------------------------------------------------
   # Producer Configuration
   #
-  # Default Kafka producer settings used by the Wallet microservice.
+  # Default Kafka producer behaviour.
   # ---------------------------------------------------------------------------
   KAFKA_ACKS: "all"
 

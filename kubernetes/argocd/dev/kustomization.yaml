@@ -1,0 +1,57 @@
+# =============================================================================
+# Kustomization Manifest
+# =============================================================================
+# File        : kustomization.yaml
+# Project     : MSIMPL - Microservices Platform
+# Environment : Development (Dev)
+# Resource    : Kustomization
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Defines all Argo CD child Applications that belong to the MSIMPL
+# Development environment.
+#
+# Description
+# -----------------------------------------------------------------------------
+# This Kustomization assembles all Argo CD Application manifests for the
+# Development environment.
+#
+# The Bootstrap Application references this directory and Argo CD uses this
+# Kustomization to create and manage all child Applications.
+#
+# Child Applications
+# -----------------------------------------------------------------------------
+# - ms-wallet
+# - ms-notification
+# - ms-transaction-orchestrator
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# - This Kustomization belongs to the Development environment.
+# - Argo CD continuously reconciles this directory with the desired state
+#   stored in Git.
+# - New microservices should be added to the resources section.
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Kustomize
+# - Argo CD
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
+#
+# Version     : 1.0.0 (LOCKED)
+# Author      : Sanjeev Kumar
+# =============================================================================
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# -----------------------------------------------------------------------------
+# Child Argo CD Applications
+# -----------------------------------------------------------------------------
+resources:
+
+  - ms-wallet-application.yaml
+  - ms-notification-application.yaml
+  - ms-transaction-orchestrator-application.yaml

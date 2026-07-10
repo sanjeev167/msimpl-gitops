@@ -4,49 +4,57 @@
 # File        : service.yaml
 # Project     : MSIMPL - Microservices Platform
 # Service     : ms-notification
-# Namespace   : msimpl
 # Resource    : Service (ClusterIP)
-# Purpose     : Exposes the Notification microservice internally within the
-#               Kubernetes cluster.
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Defines the common Kubernetes Service for the Notification microservice.
+#
+# This Service is environment-independent and is reused across
+# Development, QA, UAT and Production.
 #
 # Description
 # -----------------------------------------------------------------------------
 # This Service provides a stable internal network endpoint for the
-# ms-notification Deployment.
+# Notification microservice.
 #
 # Responsibilities
 # -----------------------------------------------------------------------------
 # - Load balances traffic across all healthy Notification Pods.
 # - Provides stable DNS-based service discovery.
-# - Allows communication between Kubernetes microservices.
-# - Used by Ingress to forward external traffic to Notification Pods.
+# - Enables communication between Kubernetes microservices.
+# - Acts as the backend Service for the Ingress Controller.
 #
 # Service Discovery
 # -----------------------------------------------------------------------------
-# Kubernetes automatically creates the following DNS entry:
+# Kubernetes automatically creates a DNS entry for this Service.
 #
-#     ms-notification.msimpl.svc.cluster.local
-#
-# Other microservices can communicate using:
+# Within the same namespace, other microservices can communicate using:
 #
 #     http://ms-notification:8081
 #
+# If cross-namespace communication is required, Kubernetes automatically
+# provides the fully qualified DNS name:
+#
+#     ms-notification.<namespace>.svc.cluster.local
+#
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This manifest is maintained in the MSIMPL GitOps repository.
-# - Argo CD continuously monitors this file and reconciles the
+# - This Service is common for all environments.
+# - Argo CD continuously monitors this manifest and reconciles the
 #   live Kubernetes Service with the desired state defined here.
-# - Changes should always be committed to Git rather than
-#   modifying the Service directly in the cluster.
+# - Never modify this Service directly inside the Kubernetes cluster.
+#   All changes must originate from Git.
 #
 # Compatible With
 # -----------------------------------------------------------------------------
-# - Local Kubernetes (Docker Desktop / Kind)
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
 # - GitHub Actions
 # - Argo CD
-# - Amazon EKS
 #
-# Version     : 1.1.0 (LOCKED)
+# Version     : 2.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -55,7 +63,6 @@ kind: Service
 
 metadata:
   name: ms-notification
-  namespace: msimpl
 
   labels:
     app: ms-notification
@@ -63,22 +70,22 @@ metadata:
 spec:
 
   # ---------------------------------------------------------------------------
-  # ClusterIP
+  # Service Type
   #
-  # Creates an internal virtual IP accessible only within the cluster.
+  # ClusterIP exposes the application only inside the Kubernetes cluster.
   #
-  # External traffic reaches this Service through the Ingress Controller.
+  # External client requests are routed through the Ingress Controller.
   # ---------------------------------------------------------------------------
   type: ClusterIP
 
   # ---------------------------------------------------------------------------
   # Pod Selector
   #
-  # Selects every Pod having:
+  # Routes traffic to Pods having:
   #
   #     app=ms-notification
   #
-  # These labels must match the Deployment template labels.
+  # This label must match the labels defined in deployment.yaml.
   # ---------------------------------------------------------------------------
   selector:
     app: ms-notification
@@ -86,13 +93,13 @@ spec:
   ports:
 
     # -------------------------------------------------------------------------
-    # Service Port
+    # Service Port Mapping
     #
     # port
-    #   Port exposed by the Service.
+    #   Port exposed by the Kubernetes Service.
     #
     # targetPort
-    #   Container port inside the Pod.
+    #   Container port exposed by the Notification application.
     # -------------------------------------------------------------------------
     - name: http
       protocol: TCP

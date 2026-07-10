@@ -3,15 +3,18 @@
 # =============================================================================
 # File        : config-map-observability.yaml
 # Project     : MSIMPL - Microservices Platform
+# Environment : Development (Dev)
 # Service     : ms-notification
-# Namespace   : msimpl
 # Resource    : ConfigMap
-# Purpose     : Stores non-sensitive observability configuration specific to the
-#               Notification microservice.
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Stores environment-specific, non-sensitive observability configuration for
+# the Notification microservice used in the Development environment.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This ConfigMap contains observability configuration consumed only by the
+# This ConfigMap contains observability configuration consumed by the
 # Notification microservice.
 #
 # Typical configuration includes:
@@ -25,31 +28,33 @@
 #
 #     config-map-common.yaml
 #
-# Sensitive information such as:
+# This ConfigMap must NEVER contain:
 #
 #   • Monitoring API Keys
 #   • Authentication Tokens
 #   • SSL Certificates
 #
-# must NEVER be stored here.
+# Sensitive monitoring credentials must be stored in Kubernetes Secrets.
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This manifest is maintained in the MSIMPL GitOps repository.
-# - Argo CD continuously reconciles this ConfigMap with Git.
-# - Any observability configuration change should be committed to Git.
-# - Changes automatically propagate to newly created Pods.
+# - This ConfigMap belongs to the Development environment.
+# - Argo CD continuously reconciles this resource with the desired
+#   state stored in Git.
+# - Never edit this ConfigMap directly inside the Kubernetes cluster.
+#   All changes must originate from Git.
 #
 # Compatible With
 # -----------------------------------------------------------------------------
 # - Spring Boot Actuator
 # - Prometheus
-# - Local Kubernetes (Docker Desktop / Kind)
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
 # - GitHub Actions
 # - Argo CD
-# - Amazon EKS
 #
-# Version     : 2.0.0 (LOCKED)
+# Version     : 3.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -61,30 +66,29 @@ metadata:
   # ---------------------------------------------------------------------------
   # ConfigMap Name
   #
-  # Referenced by Deployment:
+  # Referenced by:
   #
-  # envFrom:
-  #   configMapRef:
-  #     name: ms-notification-observability-config
+  # Deployment
+  #   envFrom:
+  #     configMapRef:
+  #       name: ms-notification-observability-config
   # ---------------------------------------------------------------------------
   name: ms-notification-observability-config
-
-  namespace: msimpl
 
   labels:
 
     app.kubernetes.io/name: ms-notification
     app.kubernetes.io/component: observability-config
     app.kubernetes.io/part-of: msimpl-platform
+    
 
 data:
 
   # ---------------------------------------------------------------------------
   # Spring Boot Actuator
   #
-  # Exposes actuator endpoints for health monitoring and metrics.
+  # Exposes Actuator endpoints for health monitoring and metrics.
   # ---------------------------------------------------------------------------
-
   MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,prometheus"
 
   MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: "always"
@@ -94,5 +98,4 @@ data:
   #
   # Enables Prometheus metrics endpoint for monitoring.
   # ---------------------------------------------------------------------------
-
   MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"

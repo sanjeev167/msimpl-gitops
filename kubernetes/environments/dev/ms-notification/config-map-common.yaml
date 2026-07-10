@@ -3,21 +3,24 @@
 # =============================================================================
 # File        : config-map-common.yaml
 # Project     : MSIMPL - Microservices Platform
-# Service     : ms-wallet
-# Namespace   : msimpl
+# Environment : Development (Dev)
+# Service     : ms-notification
 # Resource    : ConfigMap
-# Purpose     : Stores non-sensitive configuration specific to the Wallet
-#               microservice.
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Stores environment-specific, non-sensitive configuration for the
+# Notification microservice used in the Development environment.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This ConfigMap contains common application configuration consumed only by
-# the Wallet microservice.
+# This ConfigMap contains common application configuration consumed by the
+# Notification microservice.
 #
 # Typical examples include:
 #
 #   • Logging configuration
-#   • Wallet-specific feature flags
+#   • Feature flags
 #   • Default application settings
 #   • Environment variables
 #
@@ -28,24 +31,25 @@
 #   • Tokens
 #   • Certificates
 #
-# Sensitive information belongs in Kubernetes Secrets.
+# Sensitive information must be stored in Kubernetes Secrets.
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This manifest is maintained in the MSIMPL GitOps repository.
-# - Argo CD continuously monitors this ConfigMap and reconciles the
-#   cluster with the desired state stored in Git.
-# - Any modification should be committed to Git rather than editing the
-#   ConfigMap directly inside Kubernetes.
+# - This ConfigMap belongs to the Development environment.
+# - Argo CD continuously reconciles this resource with the desired
+#   state stored in Git.
+# - Never edit this ConfigMap directly inside the Kubernetes cluster.
+#   All changes must originate from Git.
 #
 # Compatible With
 # -----------------------------------------------------------------------------
-# - Local Kubernetes (Docker Desktop / Kind)
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
 # - GitHub Actions
 # - Argo CD
-# - Amazon EKS
 #
-# Version     : 2.0.0 (LOCKED)
+# Version     : 3.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -57,27 +61,29 @@ metadata:
   # ---------------------------------------------------------------------------
   # ConfigMap Name
   #
-  # Referenced by Deployment:
+  # Referenced by:
   #
-  # envFrom:
-  #   configMapRef:
-  #     name: ms-wallet-common-config
+  # Deployment
+  #   envFrom:
+  #     configMapRef:
+  #       name: ms-notification-common-config
   # ---------------------------------------------------------------------------
-  name: ms-wallet-common-config
-
-  namespace: msimpl
+  name: ms-notification-common-config
 
   labels:
 
-    app.kubernetes.io/name: ms-wallet
+    app.kubernetes.io/name: ms-notification
     app.kubernetes.io/component: common-config
     app.kubernetes.io/part-of: msimpl-platform
+   
 
 data:
 
   # ---------------------------------------------------------------------------
   # Default Root Logging Level
   #
-  # Spring Boot reads this as an environment variable.
+  # Spring Boot automatically maps this environment variable to:
+  #
+  # logging.level.root
   # ---------------------------------------------------------------------------
   LOG_LEVEL_ROOT: "INFO"

@@ -3,20 +3,23 @@
 # =============================================================================
 # File        : config-map-kafka.yaml
 # Project     : MSIMPL - Microservices Platform
+# Environment : Development (Dev)
 # Service     : ms-notification
-# Namespace   : msimpl
 # Resource    : ConfigMap
-# Purpose     : Stores non-sensitive Apache Kafka configuration specific to the
-#               Notification microservice.
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Stores environment-specific, non-sensitive Apache Kafka configuration for the
+# Notification microservice used in the Development environment.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This ConfigMap contains Kafka configuration consumed only by the Notification
+# This ConfigMap contains Kafka configuration consumed by the Notification
 # microservice.
 #
 # Typical configuration includes:
 #
-#   • Kafka bootstrap server
+#   • Kafka Bootstrap Server
 #   • Consumer defaults
 #   • Producer defaults
 #   • Retry configuration
@@ -31,30 +34,33 @@
 # are configured within the Notification microservice and may reference these
 # environment variables.
 #
-# Sensitive information such as:
+# This ConfigMap must NEVER contain:
 #
 #   • SASL Username
 #   • SASL Password
 #   • SSL Certificates
+#   • Authentication Secrets
 #
-# must NEVER be stored here.
+# Sensitive Kafka credentials must be stored in Kubernetes Secrets.
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This manifest is maintained in the MSIMPL GitOps repository.
-# - Argo CD continuously reconciles this ConfigMap with Git.
-# - Any Kafka configuration change should be committed to Git.
-# - Changes automatically propagate to newly created Pods.
+# - This ConfigMap belongs to the Development environment.
+# - Argo CD continuously reconciles this resource with the desired
+#   state stored in Git.
+# - Never edit this ConfigMap directly inside the Kubernetes cluster.
+#   All changes must originate from Git.
 #
 # Compatible With
 # -----------------------------------------------------------------------------
 # - Apache Kafka
-# - Local Kubernetes (Docker Desktop / Kind)
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
 # - GitHub Actions
 # - Argo CD
-# - Amazon EKS
 #
-# Version     : 2.0.0 (LOCKED)
+# Version     : 3.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -66,56 +72,45 @@ metadata:
   # ---------------------------------------------------------------------------
   # ConfigMap Name
   #
-  # Referenced by Deployment:
+  # Referenced by:
   #
-  # envFrom:
-  #   configMapRef:
-  #     name: ms-notification-kafka-config
+  # Deployment
+  #   envFrom:
+  #     configMapRef:
+  #       name: ms-notification-kafka-config
   # ---------------------------------------------------------------------------
   name: ms-notification-kafka-config
-
-  namespace: msimpl
 
   labels:
 
     app.kubernetes.io/name: ms-notification
     app.kubernetes.io/component: kafka-config
     app.kubernetes.io/part-of: msimpl-platform
+    
 
 data:
 
   # ---------------------------------------------------------------------------
   # Kafka Bootstrap Server
   #
-  # Local Development
-  # -----------------
-  # host.docker.internal resolves to the host machine from inside Docker.
+  # Spring Boot constructs the bootstrap server as:
   #
-  # Production
-  # ----------
-  # Replace with the Kafka bootstrap service or external broker address.
+  # ${KAFKA_HOST}:${KAFKA_PORT}
   # ---------------------------------------------------------------------------
-
   KAFKA_HOST: "host.docker.internal"
 
   KAFKA_PORT: "9092"
 
   # ---------------------------------------------------------------------------
   # Consumer Configuration
-  #
-  # Default Kafka consumer settings used by the Notification microservice.
   # ---------------------------------------------------------------------------
-
   KAFKA_AUTO_OFFSET_RESET: "earliest"
 
   KAFKA_ENABLE_AUTO_COMMIT: "false"
 
   # ---------------------------------------------------------------------------
   # Producer Configuration
-  #
-  # Default Kafka producer settings used by the Notification microservice.
   # ---------------------------------------------------------------------------
-
   KAFKA_ACKS: "all"
 
   KAFKA_RETRIES: "3"
