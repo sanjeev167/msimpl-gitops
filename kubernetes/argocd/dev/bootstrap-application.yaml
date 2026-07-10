@@ -90,7 +90,7 @@ spec:
 
     targetRevision: main
 
-    path: argocd/dev
+    path: kubernetes/argocd/dev
 
   destination:
 
