@@ -105,7 +105,7 @@ spec:
           # GitHub Actions automatically updates ONLY the image tag.
           # The same Docker image is deployed to all environments.
           # -------------------------------------------------------------------
-          image: sanjeev777/ms-wallet:v0.0.1-SNAPSHOT-fc224fa
+          image: sanjeev777/ms-wallet:v0.0.1-SNAPSHOT-d5eccab
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
