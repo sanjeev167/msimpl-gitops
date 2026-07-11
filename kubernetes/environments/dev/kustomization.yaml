@@ -13,22 +13,45 @@
 #
 # Description
 # -----------------------------------------------------------------------------
-# This Kustomization assembles all environment-specific manifests for the
-# Development environment.
+# This Kustomization is the deployment entry point for the Development
+# environment. It assembles all shared environment resources and delegates the
+# deployment of each microservice to its own Kustomization.
 #
 # Responsibilities
 # -----------------------------------------------------------------------------
 # - Applies the Development namespace.
-# - Applies common labels.
+# - Applies common labels to all resources.
 # - Deploys the shared Ingress.
-# - Deploys all microservices.
+# - Deploys all Development environment microservices.
 # - Serves as the deployment entry point for Argo CD.
+#
+# Repository Design
+# -----------------------------------------------------------------------------
+# Each microservice under this environment contains its own kustomization.yaml.
+#
+# Example:
+#
+#   environments/dev/ms-wallet/kustomization.yaml
+#
+# That Kustomization combines:
+#
+#   - Shared runtime resources
+#       applications/ms-wallet/deployment.yaml
+#       applications/ms-wallet/service.yaml
+#
+#   - Environment-specific resources
+#       ConfigMaps
+#       Secrets
+#
+# This layered structure keeps application manifests independent from
+# environment-specific configuration while allowing Argo CD and Kustomize to
+# assemble the complete deployment automatically.
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
 # - Argo CD synchronizes this Kustomization from Git.
 # - All Development environment changes must originate from Git.
-# - New microservices should be added to the resources section.
+# - New microservices should be added only to the resources section.
 #
 # Compatible With
 # -----------------------------------------------------------------------------
@@ -38,7 +61,7 @@
 # - Kind
 # - Amazon EKS
 #
-# Version     : 3.0.0 (LOCKED)
+# Version     : 4.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -55,7 +78,7 @@ namespace: msimpl
 # -----------------------------------------------------------------------------
 # Common Labels
 #
-# Applied to every resource in this overlay.
+# Applied automatically to every resource assembled by this Kustomization.
 # -----------------------------------------------------------------------------
 labels:
   - pairs:
@@ -67,11 +90,21 @@ labels:
 # -----------------------------------------------------------------------------
 resources:
 
-  # Shared Resources
-  - namespace.yaml
-  - ingress.yaml
+  # ---------------------------------------------------------------------------
+  # Shared Environment Resources
+  # ---------------------------------------------------------------------------
+  - namespace/namespace.yaml
+  - ingress/ingress.yaml
 
+  # ---------------------------------------------------------------------------
   # Microservices
+  #
+  # Each directory contains its own kustomization.yaml that assembles:
+  #   - Deployment
+  #   - Service
+  #   - ConfigMaps
+  #   - Secrets
+  # ---------------------------------------------------------------------------
   - ms-wallet
   - ms-notification
   - ms-transaction-orchestrator
