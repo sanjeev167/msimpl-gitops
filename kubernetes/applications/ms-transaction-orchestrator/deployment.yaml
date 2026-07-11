@@ -67,7 +67,7 @@ kind: Deployment
 
 metadata:
 
-  name: ms-transaction-orchestrator
+  name: ms-transaction-orchestrator-deployment
 
   labels:
 
