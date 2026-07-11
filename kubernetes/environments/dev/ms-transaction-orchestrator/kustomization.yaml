@@ -56,7 +56,7 @@ resources:
   # ---------------------------------------------------------------------------
   # Shared Runtime Resources
   # ---------------------------------------------------------------------------
- 
+  - ../environments/dev
   - ../../../applications/ms-transaction-orchestrator
   
 

@@ -127,7 +127,7 @@ spec:
     # -------------------------------------------------------------------------
     # Directory containing the Development environment Kustomize manifests.
     # -------------------------------------------------------------------------
-    path: kubernetes/environments/dev
+    path: kubernetes/environments/dev/ms-notification
 
   destination:
 

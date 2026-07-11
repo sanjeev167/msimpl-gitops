@@ -96,16 +96,4 @@ resources:
   - namespace/namespace.yaml
   - ingress/ingress.yaml
 
-  # ---------------------------------------------------------------------------
-  # Microservices
-  #
-  # Each directory contains its own kustomization.yaml that assembles:
-  #   - Deployment
-  #   - Service
-  #   - ConfigMaps
-  #   - Secrets
-  # ---------------------------------------------------------------------------
   
-  - ms-wallet
-  - ms-notification
-  - ms-transaction-orchestrator
