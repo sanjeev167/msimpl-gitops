@@ -13,42 +13,44 @@
 # This Deployment is environment-independent and is reused across
 # Development, QA, UAT and Production.
 #
-# Environment-specific configuration such as:
+# Environment-specific resources such as:
 #
-#   - Namespace
-#   - Database Configuration
-#   - Kafka Configuration
-#   - Secrets
-#   - Ingress
+#   • Namespace
+#   • ConfigMaps
+#   • Secrets
+#   • Ingress
 #
-# is supplied from:
+# are supplied from:
 #
-# kubernetes/environments/<environment>/
+#     kubernetes/environments/<environment>/ms-notification
+#
 #
 # Description
 # -----------------------------------------------------------------------------
-# This Deployment defines the desired runtime state of the
-# Notification microservice.
+# This Deployment defines the desired runtime state of the Notification
+# microservice.
 #
 # It specifies:
 #
-#   - Desired Pod replicas
-#   - Rolling Update deployment strategy
-#   - Docker image
-#   - Resource requests & limits
-#   - Startup, Readiness and Liveness probes
-#   - ConfigMaps and Secrets
-#   - Graceful application shutdown
+#   • Desired Pod replicas
+#   • Rolling Update strategy
+#   • Docker image
+#   • Resource requests and limits
+#   • Startup, Readiness and Liveness probes
+#   • ConfigMaps and Secret references
+#   • Graceful application shutdown
+#
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This Deployment is common for all environments.
-# - GitHub Actions updates ONLY the Docker image tag after publishing
-#   a new image to Docker Hub.
-# - Argo CD deploys this Deployment using the configuration supplied
-#   by the selected environment.
-# - Never modify this resource directly inside the Kubernetes cluster.
+# - This Deployment is shared across all deployment environments.
+# - GitHub Actions updates ONLY the Docker image tag after publishing a new
+#   image to Docker Hub.
+# - Argo CD deploys this Deployment using the selected environment
+#   Kustomization.
+# - Never modify this Deployment directly inside Kubernetes.
 #   All deployment changes must originate from Git.
+#
 #
 # Compatible With
 # -----------------------------------------------------------------------------
@@ -58,122 +60,174 @@
 # - GitHub Actions
 # - Argo CD
 #
-# Version     : 3.0.0 (LOCKED)
+#
+# Version     : 4.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
 apiVersion: apps/v1
 kind: Deployment
+
 metadata:
-  name: ms-notification
-  labels:
-    app: ms-notification
-spec:
+
   # ---------------------------------------------------------------------------
-  # Desired number of Pod replicas.
-  #
-  # Environment-specific replica counts may be overridden later through
-  # Kustomize overlays without modifying this Deployment.
+  # Deployment Name
+  # ---------------------------------------------------------------------------
+  name: ms-notification-deployment
+
+  labels:
+
+    app.kubernetes.io/name: ms-notification
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: msimpl-platform
+
+spec:
+
+  # ---------------------------------------------------------------------------
+  # Desired Replica Count
   # ---------------------------------------------------------------------------
   replicas: 1
+
   # ---------------------------------------------------------------------------
-  # Number of previous ReplicaSets retained for rollback.
+  # Number of ReplicaSets retained for rollback.
   # ---------------------------------------------------------------------------
   revisionHistoryLimit: 5
+
   # ---------------------------------------------------------------------------
   # Rolling Update Strategy
   # ---------------------------------------------------------------------------
   strategy:
+
     type: RollingUpdate
+
     rollingUpdate:
+
       maxSurge: 1
       maxUnavailable: 0
+
+  # ---------------------------------------------------------------------------
+  # Pod Selector
+  # ---------------------------------------------------------------------------
   selector:
+
     matchLabels:
-      app: ms-notification
+
+      app.kubernetes.io/name: ms-notification
+
   template:
+
     metadata:
+
       labels:
-        app: ms-notification
+
+        app.kubernetes.io/name: ms-notification
+
     spec:
+
       # -----------------------------------------------------------------------
-      # Allow Spring Boot to shut down gracefully before Pod termination.
+      # Graceful Shutdown
       # -----------------------------------------------------------------------
       terminationGracePeriodSeconds: 30
+
       containers:
+
         - name: ms-notification
+
           # -------------------------------------------------------------------
-          # GitHub Actions automatically updates ONLY the image tag.
-          # The same Docker image is deployed to all environments.
+          # Docker Image
+          #
+          # GitHub Actions updates ONLY the image tag.
           # -------------------------------------------------------------------
           image: sanjeev777/ms-notification:v0.0.1-SNAPSHOT-fc224fa
+
           imagePullPolicy: Always
+
           ports:
+
             - containerPort: 8081
+
           # -------------------------------------------------------------------
           # Environment Configuration
           #
-          # The ConfigMaps and Secrets referenced below are supplied by the
-          # selected deployment environment (Dev / QA / UAT / Prod).
-          #
-          # Their names remain identical across environments while their
-          # contents differ.
+          # Supplied by the selected environment.
           # -------------------------------------------------------------------
           envFrom:
+
             # Common Configuration
             - configMapRef:
                 name: ms-notification-common-config
+
             # Database Configuration
             - configMapRef:
                 name: ms-notification-db-config
+
             # Kafka Configuration
             - configMapRef:
                 name: ms-notification-kafka-config
+
             # Observability Configuration
             - configMapRef:
                 name: ms-notification-observability-config
+
             # Sensitive Configuration
             - secretRef:
-                name: msimpl-secret
+                name: ms-notification-secret
+
           # -------------------------------------------------------------------
           # Resource Requests & Limits
           # -------------------------------------------------------------------
           resources:
+
             requests:
+
               cpu: "200m"
               memory: "384Mi"
+
             limits:
+
               cpu: "500m"
               memory: "768Mi"
+
           # -------------------------------------------------------------------
           # Startup Probe
           # -------------------------------------------------------------------
           startupProbe:
+
             httpGet:
+
               path: /actuator/health
               port: 8081
+
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 30
+
           # -------------------------------------------------------------------
           # Readiness Probe
           # -------------------------------------------------------------------
           readinessProbe:
+
             httpGet:
+
               path: /actuator/health/readiness
               port: 8081
+
             initialDelaySeconds: 20
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
+
           # -------------------------------------------------------------------
           # Liveness Probe
           # -------------------------------------------------------------------
           livenessProbe:
+
             httpGet:
+
               path: /actuator/health/liveness
               port: 8081
+
             initialDelaySeconds: 60
             periodSeconds: 20
             timeoutSeconds: 5

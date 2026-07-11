@@ -13,6 +13,7 @@
 # This Service is environment-independent and is reused across
 # Development, QA, UAT and Production.
 #
+#
 # Description
 # -----------------------------------------------------------------------------
 # This Service provides a stable internal network endpoint for the
@@ -20,31 +21,35 @@
 #
 # Responsibilities
 # -----------------------------------------------------------------------------
-# - Load balances traffic across all healthy Notification Pods.
-# - Provides stable DNS-based service discovery.
-# - Enables communication between Kubernetes microservices.
-# - Acts as the backend Service for the Ingress Controller.
+# • Load balances traffic across all healthy Notification Pods.
+# • Provides stable DNS-based service discovery.
+# • Enables communication between Kubernetes microservices.
+# • Acts as the backend Service for the Notification Ingress.
+#
 #
 # Service Discovery
 # -----------------------------------------------------------------------------
 # Kubernetes automatically creates a DNS entry for this Service.
 #
-# Within the same namespace, other microservices can communicate using:
+# Within the same namespace:
 #
-#     http://ms-notification:8081
+#     http://ms-notification-service:8081
 #
-# If cross-namespace communication is required, Kubernetes automatically
-# provides the fully qualified DNS name:
+# Across namespaces:
 #
-#     ms-notification.<namespace>.svc.cluster.local
+#     ms-notification-service.<namespace>.svc.cluster.local
+#
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This Service is common for all environments.
-# - Argo CD continuously monitors this manifest and reconciles the
-#   live Kubernetes Service with the desired state defined here.
-# - Never modify this Service directly inside the Kubernetes cluster.
+# - This Service is shared across all deployment environments.
+# - Environment-specific configuration is supplied by the selected
+#   Kustomization.
+# - Argo CD continuously reconciles this Service with the desired state
+#   stored in the GitOps repository.
+# - Never modify this Service directly inside Kubernetes.
 #   All changes must originate from Git.
+#
 #
 # Compatible With
 # -----------------------------------------------------------------------------
@@ -54,7 +59,8 @@
 # - GitHub Actions
 # - Argo CD
 #
-# Version     : 2.0.0 (LOCKED)
+#
+# Version     : 3.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -62,10 +68,22 @@ apiVersion: v1
 kind: Service
 
 metadata:
-  name: ms-notification
+
+  # ---------------------------------------------------------------------------
+  # Service Name
+  #
+  # Referenced by:
+  #
+  #   ingress.yaml
+  #
+  # ---------------------------------------------------------------------------
+  name: ms-notification-service
 
   labels:
-    app: ms-notification
+
+    app.kubernetes.io/name: ms-notification
+    app.kubernetes.io/component: service
+    app.kubernetes.io/part-of: msimpl-platform
 
 spec:
 
@@ -73,33 +91,25 @@ spec:
   # Service Type
   #
   # ClusterIP exposes the application only inside the Kubernetes cluster.
-  #
-  # External client requests are routed through the Ingress Controller.
+  # External traffic reaches this Service through the Ingress Controller.
   # ---------------------------------------------------------------------------
   type: ClusterIP
 
   # ---------------------------------------------------------------------------
   # Pod Selector
   #
-  # Routes traffic to Pods having:
+  # Routes traffic to Pods created by:
   #
-  #     app=ms-notification
-  #
-  # This label must match the labels defined in deployment.yaml.
+  #     ms-notification-deployment
   # ---------------------------------------------------------------------------
   selector:
-    app: ms-notification
+
+    app.kubernetes.io/name: ms-notification
 
   ports:
 
     # -------------------------------------------------------------------------
-    # Service Port Mapping
-    #
-    # port
-    #   Port exposed by the Kubernetes Service.
-    #
-    # targetPort
-    #   Container port exposed by the Notification application.
+    # HTTP Service Port
     # -------------------------------------------------------------------------
     - name: http
       protocol: TCP

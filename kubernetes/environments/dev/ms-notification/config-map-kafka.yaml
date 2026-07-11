@@ -9,47 +9,61 @@
 #
 # Purpose
 # -----------------------------------------------------------------------------
-# Stores environment-specific, non-sensitive Apache Kafka configuration for the
-# Notification microservice used in the Development environment.
+# Stores Development environment-specific, non-sensitive Apache Kafka
+# configuration consumed exclusively by the Notification microservice.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This ConfigMap contains Kafka configuration consumed by the Notification
-# microservice.
+# This ConfigMap contains the Kafka infrastructure configuration required by
+# the Notification microservice to communicate with the Kafka cluster.
 #
 # Typical configuration includes:
 #
-#   • Kafka Bootstrap Server
-#   • Consumer defaults
-#   • Producer defaults
-#   • Retry configuration
+#   • Kafka Bootstrap Host
+#   • Kafka Bootstrap Port
+#   • Default Consumer Configuration
+#   • Default Producer Configuration
+#   • Retry Configuration
 #
-# Service-specific Kafka settings such as:
+# Service-specific Kafka configuration such as:
 #
-#   • Topic names
-#   • Consumer groups
-#   • Function bindings
-#   • Serialization configuration
+#   • Topic Names
+#   • Consumer Groups
+#   • Spring Cloud Stream Bindings
+#   • Serialization Configuration
 #
-# are configured within the Notification microservice and may reference these
-# environment variables.
+# remains inside the Notification application configuration and references
+# these environment variables where required.
 #
-# This ConfigMap must NEVER contain:
+# This ConfigMap MUST NEVER contain:
 #
 #   • SASL Username
 #   • SASL Password
 #   • SSL Certificates
-#   • Authentication Secrets
+#   • Authentication Tokens
 #
-# Sensitive Kafka credentials must be stored in Kubernetes Secrets.
+# Sensitive information must always be stored in a Kubernetes Secret.
+#
+# This ConfigMap is referenced by the Notification Deployment using:
+#
+#     envFrom:
+#       configMapRef:
+#         name: ms-notification-kafka-config
+#
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This ConfigMap belongs to the Development environment.
-# - Argo CD continuously reconciles this resource with the desired
-#   state stored in Git.
-# - Never edit this ConfigMap directly inside the Kubernetes cluster.
-#   All changes must originate from Git.
+# - This ConfigMap belongs exclusively to the Notification microservice in the
+#   Development environment.
+# - It is deployed through the Notification service Kustomization located at:
+#
+#       kubernetes/environments/dev/ms-notification
+#
+# - Argo CD continuously reconciles this ConfigMap with the desired state
+#   stored in the GitOps repository.
+# - Never modify this ConfigMap directly inside the Kubernetes cluster.
+#   All configuration changes must originate from Git.
+#
 #
 # Compatible With
 # -----------------------------------------------------------------------------
@@ -60,7 +74,8 @@
 # - GitHub Actions
 # - Argo CD
 #
-# Version     : 3.0.0 (LOCKED)
+#
+# Version     : 4.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -86,30 +101,46 @@ metadata:
     app.kubernetes.io/name: ms-notification
     app.kubernetes.io/component: kafka-config
     app.kubernetes.io/part-of: msimpl-platform
-    
+    app.kubernetes.io/environment: dev
 
+
+# -----------------------------------------------------------------------------
+# Non-sensitive Apache Kafka Configuration
+#
+# Spring Boot automatically maps these environment variables to the
+# corresponding Kafka configuration properties.
+# -----------------------------------------------------------------------------
 data:
 
   # ---------------------------------------------------------------------------
-  # Kafka Bootstrap Server
+  # Kafka Bootstrap Host
   #
-  # Spring Boot constructs the bootstrap server as:
+  # Development
+  # ---------------------------------------------------------------------------
+  # host.docker.internal resolves to the Docker Desktop host where the Kafka
+  # broker is currently running.
   #
-  # ${KAFKA_HOST}:${KAFKA_PORT}
+  # QA / UAT / Production
+  # ---------------------------------------------------------------------------
+  # Replace this value with the Kafka Service DNS name or bootstrap broker
+  # address appropriate for the target environment.
   # ---------------------------------------------------------------------------
   KAFKA_HOST: "host.docker.internal"
 
+  # ---------------------------------------------------------------------------
+  # Kafka Bootstrap Port
+  # ---------------------------------------------------------------------------
   KAFKA_PORT: "9092"
 
   # ---------------------------------------------------------------------------
-  # Consumer Configuration
+  # Default Consumer Configuration
   # ---------------------------------------------------------------------------
   KAFKA_AUTO_OFFSET_RESET: "earliest"
 
   KAFKA_ENABLE_AUTO_COMMIT: "false"
 
   # ---------------------------------------------------------------------------
-  # Producer Configuration
+  # Default Producer Configuration
   # ---------------------------------------------------------------------------
   KAFKA_ACKS: "all"
 

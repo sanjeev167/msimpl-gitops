@@ -4,34 +4,27 @@
 # File        : ingress.yaml
 # Project     : MSIMPL - Microservices Platform
 # Environment : Development (Dev)
+# Service     : ms-notification
 # Resource    : Ingress (NGINX)
 #
 # Purpose
 # -----------------------------------------------------------------------------
-# Exposes MSIMPL microservices to external clients through the NGINX Ingress
-# Controller in the Development environment.
+# Exposes the Notification microservice through the NGINX Ingress Controller
+# in the Development environment.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This Ingress acts as the single API entry point into the MSIMPL platform
-# during Development.
+# This Ingress provides external HTTP access to the Notification
+# microservice.
 #
-# All client requests are routed through the NGINX Ingress Controller and then
-# forwarded to the appropriate internal Kubernetes ClusterIP Service based on
-# the request path.
+# Client requests matching the Notification path are routed through the
+# NGINX Ingress Controller to the internal Notification Kubernetes Service.
+#
 #
 # Development URL
 # -----------------------------------------------------------------------------
 #
-# https://api.msimpl.local
-#
-#
-# Responsibilities
-# -----------------------------------------------------------------------------
-# - Receives external client requests.
-# - Performs path-based routing.
-# - Routes requests to internal ClusterIP Services.
-# - Provides a single API endpoint for all MSIMPL microservices.
+# https://api.msimpl.local/notification
 #
 #
 # Request Flow
@@ -40,78 +33,61 @@
 # Browser / Postman
 #         │
 #         ▼
-# https://api.msimpl.local
+# https://api.msimpl.local/notification
 #         │
 #         ▼
 # NGINX Ingress Controller
 #         │
-#         ├────────────► /wallet
-#         │                  │
-#         │                  ▼
-#         │            ms-wallet Service
+#         ▼
+# ms-notification-service
 #         │
-#         ├────────────► /notification
-#         │                  │
-#         │                  ▼
-#         │        ms-notification Service
-#         │
-#         └────────────► /transaction
-#                            │
-#                            ▼
-#              ms-transaction-orchestrator Service
+#         ▼
+# Notification Pods
 #
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This Ingress belongs to the Development environment.
+# - This Ingress belongs exclusively to the Notification microservice in the
+#   Development environment.
+# - It is deployed through the Notification service Kustomization located at:
+#
+#       kubernetes/environments/dev/ms-notification
+#
 # - Managed by Argo CD through GitOps.
-# - Never modify this resource directly inside Kubernetes.
-# - All changes must originate from the Git repository.
-# - Shared by all MSIMPL microservices.
-#
-#
-# Environment Notes
-# -----------------------------------------------------------------------------
-# Development
-#     https://api.msimpl.local
-#
-# QA
-#     https://api.qa.msimpl.company.com
-#
-# UAT
-#     https://api.uat.msimpl.company.com
-#
-# Production
-#     https://api.msimpl.company.com
+# - Never modify this Ingress directly inside Kubernetes.
+#   All changes must originate from the Git repository.
 #
 #
 # Compatible With
 # -----------------------------------------------------------------------------
+# - NGINX Ingress Controller
 # - Docker Desktop Kubernetes
 # - Kind
 # - Amazon EKS
-# - NGINX Ingress Controller
 # - GitHub Actions
 # - Argo CD
 #
 #
-# Version     : 3.1.0 (LOCKED)
+# Version     : 4.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
 apiVersion: networking.k8s.io/v1
-
 kind: Ingress
 
 metadata:
 
-  name: msimpl-ingress
+  # ---------------------------------------------------------------------------
+  # Ingress Name
+  # ---------------------------------------------------------------------------
+  name: ms-notification-ingress
 
   labels:
 
-    app.kubernetes.io/name: msimpl-ingress
+    app.kubernetes.io/name: ms-notification
     app.kubernetes.io/component: ingress
     app.kubernetes.io/part-of: msimpl-platform
+    app.kubernetes.io/environment: dev
 
 spec:
 
@@ -129,37 +105,16 @@ spec:
         paths:
 
           # -------------------------------------------------------------------
-          # Wallet Service
-          # -------------------------------------------------------------------
-          - path: /wallet
-            pathType: Prefix
-
-            backend:
-              service:
-                name: ms-wallet
-                port:
-                  number: 8080
-
-          # -------------------------------------------------------------------
           # Notification Service
           # -------------------------------------------------------------------
           - path: /notification
             pathType: Prefix
 
             backend:
+
               service:
-                name: ms-notification
+
+                name: ms-notification-service
+
                 port:
                   number: 8081
-
-          # -------------------------------------------------------------------
-          # Transaction Orchestrator Service
-          # -------------------------------------------------------------------
-          - path: /transaction
-            pathType: Prefix
-
-            backend:
-              service:
-                name: ms-transaction-orchestrator
-                port:
-                  number: 8082

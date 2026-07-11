@@ -1,15 +1,107 @@
+# =============================================================================
+# Kustomization Manifest
+# =============================================================================
+# File        : kustomization.yaml
+# Project     : MSIMPL - Microservices Platform
+# Microservice: ms-notification
+# Resource    : Kustomization
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Assembles the common Kubernetes resources required to deploy the
+# Notification microservice.
+#
+# Description
+# -----------------------------------------------------------------------------
+# This Kustomization represents the environment-independent application layer
+# for the Notification microservice.
+#
+# It combines the shared Kubernetes manifests that are reused across all
+# deployment environments, including:
+#
+#   • Deployment
+#   • Service
+#
+# Environment-specific resources such as:
+#
+#   • Namespace
+#   • Ingress
+#   • ConfigMaps
+#   • Secrets
+#
+# are intentionally excluded from this Kustomization and are supplied by the
+# corresponding environment Kustomization.
+#
+# This separation enables the same application manifests to be reused across
+# Development, QA, UAT and Production while allowing each environment to
+# maintain its own configuration independently.
+#
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# This Kustomization is referenced by:
+#
+#     kubernetes/environments/dev/ms-notification/kustomization.yaml
+#
+# During synchronization, Argo CD builds the environment Kustomization, which
+# in turn includes this shared application Kustomization.
+#
+#
+# Deployment Flow
+# -----------------------------------------------------------------------------
+#
+# Argo CD
+#      │
+#      ▼
+# environments/dev/ms-notification
+#      │
+#      ▼
+# Environment Kustomization
+#      │
+#      ▼
+# applications/ms-notification
+#      │
+#      ├── deployment.yaml
+#      └── service.yaml
+#      │
+#      ▼
+# Kubernetes Cluster
+#
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Kustomize
+# - Argo CD
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
+#
+#
+# Version     : 2.0.0 (LOCKED)
+# Author      : Sanjeev Kumar
+# =============================================================================
+
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Environment-independent resources
+# -----------------------------------------------------------------------------
+# Shared Application Resources
+#
+# These manifests are environment-independent and reused across all
+# deployment environments.
+# -----------------------------------------------------------------------------
 resources:
+
   - deployment.yaml
   - service.yaml
 
-# Common labels applied to all resources
+# -----------------------------------------------------------------------------
+# Common Labels
+#
+# Applied automatically to all resources managed by this Kustomization.
+# -----------------------------------------------------------------------------
 commonLabels:
-  app: ms-notification
-  tier: backend
 
-# Optional: prefix to distinguish base resources
-#namePrefix: base-
+  app.kubernetes.io/name: ms-notification
+  app.kubernetes.io/component: application
+  app.kubernetes.io/part-of: msimpl-platform

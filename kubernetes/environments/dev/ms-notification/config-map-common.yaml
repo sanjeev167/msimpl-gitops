@@ -9,13 +9,13 @@
 #
 # Purpose
 # -----------------------------------------------------------------------------
-# Stores environment-specific, non-sensitive configuration for the
-# Notification microservice used in the Development environment.
+# Stores Development environment-specific, non-sensitive configuration
+# consumed exclusively by the Notification microservice.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This ConfigMap contains common application configuration consumed by the
-# Notification microservice.
+# This ConfigMap contains common application configuration required by the
+# Notification microservice during deployment.
 #
 # Typical examples include:
 #
@@ -24,22 +24,36 @@
 #   • Default application settings
 #   • Environment variables
 #
-# This ConfigMap must NEVER contain:
+# This ConfigMap MUST NEVER contain:
 #
 #   • Passwords
 #   • API Keys
-#   • Tokens
+#   • Authentication Tokens
 #   • Certificates
+#   • Encryption Keys
 #
-# Sensitive information must be stored in Kubernetes Secrets.
+# Sensitive information must always be stored in a Kubernetes Secret.
+#
+# This ConfigMap is referenced by the Notification Deployment using:
+#
+#     envFrom:
+#       configMapRef:
+#         name: ms-notification-common-config
+#
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This ConfigMap belongs to the Development environment.
-# - Argo CD continuously reconciles this resource with the desired
-#   state stored in Git.
-# - Never edit this ConfigMap directly inside the Kubernetes cluster.
-#   All changes must originate from Git.
+# - This ConfigMap belongs exclusively to the Notification microservice in the
+#   Development environment.
+# - It is deployed through the Notification service Kustomization located at:
+#
+#       kubernetes/environments/dev/ms-notification
+#
+# - Argo CD continuously reconciles this ConfigMap with the desired state
+#   stored in the GitOps repository.
+# - Never modify this ConfigMap directly inside the Kubernetes cluster.
+#   All configuration changes must originate from Git.
+#
 #
 # Compatible With
 # -----------------------------------------------------------------------------
@@ -49,7 +63,8 @@
 # - GitHub Actions
 # - Argo CD
 #
-# Version     : 3.0.0 (LOCKED)
+#
+# Version     : 4.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -75,15 +90,19 @@ metadata:
     app.kubernetes.io/name: ms-notification
     app.kubernetes.io/component: common-config
     app.kubernetes.io/part-of: msimpl-platform
-   
+    app.kubernetes.io/environment: dev
 
+
+# -----------------------------------------------------------------------------
+# Non-sensitive Application Configuration
+# -----------------------------------------------------------------------------
 data:
 
   # ---------------------------------------------------------------------------
-  # Default Root Logging Level
+  # Root Logging Level
   #
   # Spring Boot automatically maps this environment variable to:
   #
-  # logging.level.root
+  #     logging.level.root
   # ---------------------------------------------------------------------------
   LOG_LEVEL_ROOT: "INFO"

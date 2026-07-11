@@ -9,13 +9,13 @@
 #
 # Purpose
 # -----------------------------------------------------------------------------
-# Stores environment-specific, non-sensitive database configuration for the
-# Notification microservice used in the Development environment.
+# Stores Development environment-specific, non-sensitive database
+# configuration consumed exclusively by the Notification microservice.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This ConfigMap contains database connection properties required by the
-# Notification microservice.
+# This ConfigMap contains the database connection properties required by the
+# Notification microservice to connect to its PostgreSQL database.
 #
 # Typical examples include:
 #
@@ -23,21 +23,40 @@
 #   • Database Port
 #   • Database Name
 #
-# This ConfigMap must NEVER contain:
+# This ConfigMap MUST NEVER contain:
 #
 #   • Database Username
 #   • Database Password
-#   • Connection Secrets
+#   • SSL Certificates
+#   • Database Tokens
 #
-# Sensitive database credentials must be stored in Kubernetes Secrets.
+# Sensitive information must always be stored in a Kubernetes Secret.
+#
+# Database credentials are provided by:
+#
+#     Secret:
+#         ms-notification-secret
+#
+# This ConfigMap is referenced by the Notification Deployment using:
+#
+#     envFrom:
+#       configMapRef:
+#         name: ms-notification-db-config
+#
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This ConfigMap belongs to the Development environment.
-# - Argo CD continuously reconciles this resource with the desired
-#   state stored in Git.
-# - Never edit this ConfigMap directly inside the Kubernetes cluster.
-#   All changes must originate from Git.
+# - This ConfigMap belongs exclusively to the Notification microservice in the
+#   Development environment.
+# - It is deployed through the Notification service Kustomization located at:
+#
+#       kubernetes/environments/dev/ms-notification
+#
+# - Argo CD continuously reconciles this ConfigMap with the desired state
+#   stored in the GitOps repository.
+# - Never modify this ConfigMap directly inside the Kubernetes cluster.
+#   All configuration changes must originate from Git.
+#
 #
 # Compatible With
 # -----------------------------------------------------------------------------
@@ -47,7 +66,8 @@
 # - GitHub Actions
 # - Argo CD
 #
-# Version     : 3.0.0 (LOCKED)
+#
+# Version     : 4.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -73,21 +93,37 @@ metadata:
     app.kubernetes.io/name: ms-notification
     app.kubernetes.io/component: database-config
     app.kubernetes.io/part-of: msimpl-platform
-    
+    app.kubernetes.io/environment: dev
 
+
+# -----------------------------------------------------------------------------
+# Non-sensitive Database Configuration
+#
+# Spring Boot automatically maps these environment variables to the
+# corresponding application properties.
+# -----------------------------------------------------------------------------
 data:
 
   # ---------------------------------------------------------------------------
-  # PostgreSQL Database Host
+  # Database Host
+  #
+  # Hostname or IP address of the PostgreSQL server.
+  #
+  # Spring Property:
+  #     spring.datasource.url
   # ---------------------------------------------------------------------------
   DB_HOST: "host.docker.internal"
 
   # ---------------------------------------------------------------------------
-  # PostgreSQL Database Port
+  # Database Port
+  #
+  # PostgreSQL default port.
   # ---------------------------------------------------------------------------
   DB_PORT: "5432"
 
   # ---------------------------------------------------------------------------
-  # PostgreSQL Database Name
+  # Database Name
+  #
+  # Development database dedicated to the Notification microservice.
   # ---------------------------------------------------------------------------
   DB_NAME: "notification_db"

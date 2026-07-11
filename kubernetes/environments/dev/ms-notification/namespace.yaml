@@ -8,39 +8,35 @@
 #
 # Purpose
 # -----------------------------------------------------------------------------
-# Creates the dedicated Kubernetes namespace for the Development environment.
+# Creates the Kubernetes namespace used by all MSIMPL microservices deployed
+# in the Development environment.
 #
 # Description
 # -----------------------------------------------------------------------------
 # A Namespace provides logical isolation within a Kubernetes cluster.
 #
-# All Development resources for MSIMPL are deployed into this namespace,
-# including:
+# All Development resources for the MSIMPL platform are deployed into this
+# namespace, including:
 #
 #   • Deployments
 #   • Services
 #   • ConfigMaps
 #   • Secrets
-#   • Ingress
-#   • Persistent Volumes (where applicable)
+#   • Ingresses
+#   • Persistent Volume Claims (where applicable)
 #
-# This namespace is environment-specific and is reused only for the
-# Development environment.
-#
-# Keeping application resources inside a dedicated namespace improves:
-#
-#   • Organization
-#   • Security
-#   • Resource management
-#   • Monitoring
-#   • Troubleshooting
+# The namespace is shared by all MSIMPL microservices running in the
+# Development environment, allowing them to communicate using Kubernetes
+# Service Discovery while remaining isolated from other environments.
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This manifest is maintained in the MSIMPL GitOps repository.
+# - This Namespace is managed through the MSIMPL GitOps repository.
 # - Argo CD reconciles this Namespace with the desired state stored in Git.
-# - All Development resources are deployed into this namespace.
-# - This Namespace should exist before deploying application resources.
+# - The Notification environment Kustomization includes this Namespace
+#   manifest during deployment.
+# - If the Namespace already exists, Kubernetes simply reconciles its state.
+#
 #
 # Compatible With
 # -----------------------------------------------------------------------------
@@ -50,7 +46,8 @@
 # - GitHub Actions
 # - Argo CD
 #
-# Version     : 2.0.0 (LOCKED)
+#
+# Version     : 3.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -62,17 +59,16 @@ metadata:
   # ---------------------------------------------------------------------------
   # Namespace Name
   #
-  # Dedicated namespace for the Development environment.
+  # Shared namespace for all MSIMPL microservices deployed in the
+  # Development environment.
   # ---------------------------------------------------------------------------
-  name: msimpl-dev
+  name: msimpl
 
   labels:
 
     # -------------------------------------------------------------------------
-    # Standard Kubernetes labels
+    # Standard Kubernetes Labels
     # -------------------------------------------------------------------------
     app.kubernetes.io/name: msimpl
-
-    app.kubernetes.io/part-of: microservices-platform
-
-   
+    app.kubernetes.io/part-of: msimpl-platform
+    app.kubernetes.io/environment: dev
