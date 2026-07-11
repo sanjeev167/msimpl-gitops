@@ -62,7 +62,7 @@ resources:
   # ---------------------------------------------------------------------------
   # Environment Configuration
   # ---------------------------------------------------------------------------
-  - namespace.yaml
+ 
   - ingress.yaml
   - config-map-common.yaml
   - config-map-db.yaml

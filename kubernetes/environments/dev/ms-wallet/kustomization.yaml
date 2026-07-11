@@ -110,7 +110,7 @@ resources:
   # ---------------------------------------------------------------------------
   # Development Environment Resources
   # ---------------------------------------------------------------------------
-  - namespace.yaml
+  
   - ingress.yaml
   - config-map-common.yaml
   - config-map-db.yaml
