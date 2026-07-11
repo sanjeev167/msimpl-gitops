@@ -12,7 +12,7 @@
 # microservice.
 #
 # This Service is environment-independent and is reused across
-# Development, QA, UAT and Production.
+# Development, QA, UAT, and Production.
 #
 # Description
 # -----------------------------------------------------------------------------
@@ -21,10 +21,10 @@
 #
 # Responsibilities
 # -----------------------------------------------------------------------------
-# - Load balances traffic across all healthy Transaction Orchestrator Pods.
-# - Provides stable DNS-based service discovery.
-# - Enables communication between Kubernetes microservices.
-# - Acts as the backend Service for the Ingress Controller.
+# • Load balances traffic across all healthy Transaction Orchestrator Pods.
+# • Provides stable DNS-based service discovery.
+# • Enables communication between Kubernetes microservices.
+# • Acts as the backend Service for the Transaction Orchestrator Ingress.
 #
 # Service Discovery
 # -----------------------------------------------------------------------------
@@ -34,18 +34,18 @@
 #
 #     http://ms-transaction-orchestrator:8082
 #
-# If cross-namespace communication is required, Kubernetes automatically
-# provides the fully qualified DNS name:
+# For cross-namespace communication, Kubernetes provides the fully qualified
+# DNS name:
 #
 #     ms-transaction-orchestrator.<namespace>.svc.cluster.local
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This Service is common for all environments.
-# - Argo CD continuously monitors this manifest and reconciles the
-#   live Kubernetes Service with the desired state defined here.
-# - Never modify this Service directly inside the Kubernetes cluster.
-#   All changes must originate from Git.
+# • This Service is shared across all deployment environments.
+# • Argo CD continuously reconciles the live Service with the desired state
+#   stored in the GitOps repository.
+# • Never modify this Service directly in the Kubernetes cluster.
+# • All changes must originate from the GitOps repository.
 #
 # Compatible With
 # -----------------------------------------------------------------------------
@@ -63,32 +63,39 @@ apiVersion: v1
 kind: Service
 
 metadata:
+
   name: ms-transaction-orchestrator
 
   labels:
+
     app: ms-transaction-orchestrator
+    app.kubernetes.io/name: ms-transaction-orchestrator
+    app.kubernetes.io/component: service
+    app.kubernetes.io/part-of: msimpl-platform
+    app.kubernetes.io/managed-by: argocd
 
 spec:
 
   # ---------------------------------------------------------------------------
   # Service Type
   #
-  # ClusterIP exposes the application only inside the Kubernetes cluster.
+  # ClusterIP exposes the application only within the Kubernetes cluster.
   #
-  # External client requests are routed through the Ingress Controller.
+  # External traffic is routed through the Ingress Controller.
   # ---------------------------------------------------------------------------
   type: ClusterIP
 
   # ---------------------------------------------------------------------------
   # Pod Selector
   #
-  # Routes traffic to Pods having:
+  # Routes traffic to Pods with:
   #
   #     app=ms-transaction-orchestrator
   #
-  # This label must match the labels defined in deployment.yaml.
+  # This selector must match the labels defined in deployment.yaml.
   # ---------------------------------------------------------------------------
   selector:
+
     app: ms-transaction-orchestrator
 
   ports:

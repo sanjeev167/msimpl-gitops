@@ -10,22 +10,25 @@
 # Purpose
 # -----------------------------------------------------------------------------
 # Assembles all Kubernetes resources required to deploy the
-# ms-transaction-orchestrator microservice in the Development environment.
+# Transaction Orchestrator microservice in the Development environment.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This Kustomization combines:
+# This environment-specific Kustomization combines the shared application
+# manifests with the Development environment configuration.
 #
-# 1. Application runtime resources
-#      - Deployment
-#      - Service
+# Shared application resources:
 #
-# 2. Environment-specific configuration
-#      - ConfigMaps
-#      - Secrets
+#   • Deployment
+#   • Service
 #
-# The Deployment and Service are shared across all environments and are
-# maintained under:
+# Development-specific resources:
+#
+#   • Ingress
+#   • ConfigMaps
+#   • Secret
+#
+# The shared application manifests are maintained under:
 #
 #     kubernetes/applications/ms-transaction-orchestrator
 #
@@ -33,19 +36,32 @@
 #
 #     kubernetes/environments/dev/ms-transaction-orchestrator
 #
-# This separation allows the same Deployment to be reused across multiple
-# environments while only changing the configuration.
+# This separation enables the same application manifests to be reused across
+# Development, QA, UAT, and Production while allowing each environment to
+# provide its own configuration.
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# This Kustomization is referenced by:
+# • This Kustomization is referenced by:
 #
-#     environments/dev/kustomization.yaml
+#       kubernetes/environments/dev/kustomization.yaml
 #
-# Argo CD automatically builds this Kustomization during synchronization.
+# • During synchronization, Argo CD uses Kustomize to build the complete set
+#   of Kubernetes resources before applying them to the target cluster.
 #
-# Version : 1.0.0
-# Author  : Sanjeev Kumar
+# • The resulting deployment follows the App of Apps GitOps architecture used
+#   throughout the MSIMPL platform.
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Kustomize
+# - Argo CD
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
+#
+# Version     : 2.0.0 (LOCKED)
+# Author      : Sanjeev Kumar
 # =============================================================================
 
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -54,15 +70,13 @@ kind: Kustomization
 resources:
 
   # ---------------------------------------------------------------------------
-  # Shared Runtime Resources
-  # ---------------------------------------------------------------------------  
+  # Shared application manifests
+  # ---------------------------------------------------------------------------
   - ../../../applications/ms-transaction-orchestrator
-  
 
   # ---------------------------------------------------------------------------
-  # Environment Configuration
+  # Development environment configuration
   # ---------------------------------------------------------------------------
- 
   - ingress.yaml
   - config-map-common.yaml
   - config-map-db.yaml

@@ -10,21 +10,19 @@
 #
 # Purpose
 # -----------------------------------------------------------------------------
-# Registers the Transaction Orchestrator microservice with Argo CD for GitOps
-# deployment and continuous reconciliation in the Development environment.
+# Defines the Argo CD Application Custom Resource (CR) responsible for
+# deploying the Transaction Orchestrator microservice using the GitOps model.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This Application resource tells Argo CD:
+# This Application instructs Argo CD to:
 #
-#   • Which Git repository contains the Kubernetes manifests.
-#   • Which Git branch to monitor.
-#   • Which Development environment folder contains the Kustomize manifests.
-#   • Which Kubernetes cluster to deploy to.
-#   • Which namespace to deploy into.
-#
-# Argo CD continuously compares the desired state stored in Git with the
-# actual state running inside the Kubernetes cluster.
+#   • Monitor the GitOps repository.
+#   • Track the specified Git branch.
+#   • Load the Development environment manifests through Kustomize.
+#   • Deploy the application into the target Kubernetes cluster.
+#   • Continuously compare the desired state stored in Git with the
+#     running state inside Kubernetes.
 #
 # GitOps Flow
 # -----------------------------------------------------------------------------
@@ -57,16 +55,22 @@
 #
 # Notes
 # -----------------------------------------------------------------------------
-# • This file defines ONLY the Argo CD Application.
-# • The actual Kubernetes manifests are stored under:
+# • This file defines only the Argo CD Application resource.
+#
+# • All Kubernetes manifests for this microservice are maintained under:
 #
 #       kubernetes/environments/dev/ms-transaction-orchestrator
 #
-# • The target folder contains a Kustomization manifest that assembles all
-#   resources required for the Transaction Orchestrator microservice.
+# • The target directory contains a Kustomization manifest that assembles
+#   all Kubernetes resources required to deploy the Transaction Orchestrator
+#   microservice in the Development environment.
 #
-# • During Module 4 we will use Manual Sync.
-# • Automatic Sync, Self-Heal and Prune will be enabled in Module 5.
+# • Module 4 uses Manual Synchronization.
+#
+# • Module 5 enables:
+#       - Automated Synchronization
+#       - Self-Healing
+#       - Automatic Pruning
 #
 # Compatible With
 # -----------------------------------------------------------------------------
@@ -86,36 +90,39 @@ kind: Application
 metadata:
 
   # ---------------------------------------------------------------------------
-  # Name of the Argo CD Application.
-  #
-  # This name appears in the Argo CD UI.
+  # Name displayed in the Argo CD UI.
   # ---------------------------------------------------------------------------
   name: ms-transaction-orchestrator
 
   # ---------------------------------------------------------------------------
-  # The Application CR itself is stored inside the argocd namespace.
+  # Namespace where the Argo CD Application CR is stored.
   #
   # NOTE:
-  # This is NOT the namespace where the application is deployed.
+  # This is NOT the namespace where the microservice is deployed.
   # ---------------------------------------------------------------------------
   namespace: argocd
+
+  labels:
+
+    app.kubernetes.io/name: ms-transaction-orchestrator
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: msimpl-platform
+    app.kubernetes.io/managed-by: argocd
 
 spec:
 
   # ---------------------------------------------------------------------------
-  # Argo CD Project
+  # Argo CD Project.
   #
-  # Applications are grouped into Projects.
-  #
-  # We use the default project for now.
-  # Later modules will create a dedicated MSIMPL project.
+  # Applications are logically grouped into Projects.
+  # The default project is used during development.
   # ---------------------------------------------------------------------------
   project: default
 
   source:
 
     # -------------------------------------------------------------------------
-    # GitOps Repository
+    # GitOps repository containing Kubernetes manifests.
     # -------------------------------------------------------------------------
     repoURL: https://github.com/sanjeev167/msimpl-gitops.git
 
@@ -125,38 +132,34 @@ spec:
     targetRevision: main
 
     # -------------------------------------------------------------------------
-    # Directory containing the Development environment Kustomize manifests.
+    # Development environment Kustomize directory.
     # -------------------------------------------------------------------------
     path: kubernetes/environments/dev/ms-transaction-orchestrator
 
   destination:
 
     # -------------------------------------------------------------------------
-    # Destination Kubernetes Cluster.
-    #
-    # kubernetes.default.svc refers to the cluster where
-    # Argo CD is currently running.
+    # Deploy to the Kubernetes cluster where Argo CD is running.
     # -------------------------------------------------------------------------
     server: https://kubernetes.default.svc
 
     # -------------------------------------------------------------------------
-    # Target namespace for application deployment.
+    # Target namespace for the Transaction Orchestrator microservice.
     #
-    # The Development Kustomization also specifies this namespace.
+    # This namespace is created by the Infrastructure Application and is also
+    # referenced by the Development environment Kustomization.
     # -------------------------------------------------------------------------
     namespace: msimpl
 
   # ---------------------------------------------------------------------------
   # Synchronization Policy
   #
-  # Empty means Manual Synchronization.
+  # Module 4
+  #   • Manual Synchronization
   #
-  # Module 4:
-  #     Manual Sync
-  #
-  # Module 5:
-  #     Automated Sync
-  #     Self Heal
-  #     Prune
+  # Module 5
+  #   • Automated Synchronization
+  #   • Self-Heal
+  #   • Automatic Pruning
   # ---------------------------------------------------------------------------
- # syncPolicy: {}
+  # syncPolicy: {}

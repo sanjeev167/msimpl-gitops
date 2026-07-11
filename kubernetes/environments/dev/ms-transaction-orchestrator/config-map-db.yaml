@@ -14,8 +14,8 @@
 #
 # Description
 # -----------------------------------------------------------------------------
-# This ConfigMap contains database connection properties required by the
-# Transaction Orchestrator microservice.
+# This ConfigMap contains database connection properties consumed exclusively
+# by the Transaction Orchestrator microservice.
 #
 # Typical examples include:
 #
@@ -30,15 +30,16 @@
 #   • SSL Certificates
 #   • Database Tokens
 #
-# Sensitive information must be stored in Kubernetes Secrets.
+# Sensitive information must always be stored in Kubernetes Secrets.
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This ConfigMap belongs to the Development environment.
-# - Argo CD continuously reconciles this resource with the desired
-#   state stored in Git.
-# - Never edit this ConfigMap directly inside the Kubernetes cluster.
-#   All changes must originate from Git.
+# • This ConfigMap is specific to the Development environment.
+# • It belongs exclusively to the Transaction Orchestrator microservice.
+# • Argo CD continuously reconciles this resource with the desired state
+#   stored in the GitOps repository.
+# • Never modify this ConfigMap directly in the Kubernetes cluster.
+# • All changes must originate from the GitOps repository.
 #
 # Compatible With
 # -----------------------------------------------------------------------------
@@ -74,7 +75,7 @@ metadata:
     app.kubernetes.io/name: ms-transaction-orchestrator
     app.kubernetes.io/component: database-config
     app.kubernetes.io/part-of: msimpl-platform
-    
+    app.kubernetes.io/managed-by: argocd
 
 data:
 
@@ -88,7 +89,7 @@ data:
   # ---------------------------------------------------------------------------
   # Database Port
   #
-  # PostgreSQL default port.
+  # Default PostgreSQL server port.
   # ---------------------------------------------------------------------------
   DB_PORT: "5432"
 

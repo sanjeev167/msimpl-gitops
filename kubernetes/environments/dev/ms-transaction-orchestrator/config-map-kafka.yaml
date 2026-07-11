@@ -14,8 +14,9 @@
 #
 # Description
 # -----------------------------------------------------------------------------
-# This ConfigMap contains Kafka connection and default client configuration
-# consumed by the Transaction Orchestrator microservice.
+# This ConfigMap contains Kafka connection properties and default client
+# configuration consumed exclusively by the Transaction Orchestrator
+# microservice.
 #
 # Typical configuration includes:
 #
@@ -32,7 +33,7 @@
 #   • Function Bindings
 #   • Serialization Configuration
 #
-# remains inside the Transaction Orchestrator application and references these
+# remains within the Transaction Orchestrator application and references these
 # environment variables where required.
 #
 # This ConfigMap must NEVER contain:
@@ -42,15 +43,16 @@
 #   • SSL Certificates
 #   • Authentication Tokens
 #
-# Sensitive information must be stored in Kubernetes Secrets.
+# Sensitive information must always be stored in Kubernetes Secrets.
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This ConfigMap belongs to the Development environment.
-# - Argo CD continuously reconciles this resource with the desired
-#   state stored in Git.
-# - Never edit this ConfigMap directly inside the Kubernetes cluster.
-#   All changes must originate from Git.
+# • This ConfigMap is specific to the Development environment.
+# • It belongs exclusively to the Transaction Orchestrator microservice.
+# • Argo CD continuously reconciles this resource with the desired state
+#   stored in the GitOps repository.
+# • Never modify this ConfigMap directly in the Kubernetes cluster.
+# • All changes must originate from the GitOps repository.
 #
 # Compatible With
 # -----------------------------------------------------------------------------
@@ -87,7 +89,7 @@ metadata:
     app.kubernetes.io/name: ms-transaction-orchestrator
     app.kubernetes.io/component: kafka-config
     app.kubernetes.io/part-of: msimpl-platform
-    
+    app.kubernetes.io/managed-by: argocd
 
 data:
 
@@ -96,13 +98,13 @@ data:
   #
   # Development
   # -----------
-  # host.docker.internal resolves to the Docker Desktop host where Kafka
-  # is currently running.
+  # 'host.docker.internal' resolves to the Docker host where Apache Kafka is
+  # running for local development.
   #
   # QA / UAT / Production
   # ---------------------
-  # Replace with the Kafka bootstrap service or broker address for the
-  # respective environment.
+  # Replace this value with the Kafka bootstrap service or broker endpoint
+  # appropriate for the target environment.
   # ---------------------------------------------------------------------------
   KAFKA_HOST: "host.docker.internal"
 
@@ -112,18 +114,14 @@ data:
   KAFKA_PORT: "9092"
 
   # ---------------------------------------------------------------------------
-  # Consumer Configuration
-  #
-  # Default Kafka consumer behaviour.
+  # Default Consumer Configuration
   # ---------------------------------------------------------------------------
   KAFKA_AUTO_OFFSET_RESET: "earliest"
 
   KAFKA_ENABLE_AUTO_COMMIT: "false"
 
   # ---------------------------------------------------------------------------
-  # Producer Configuration
-  #
-  # Default Kafka producer behaviour.
+  # Default Producer Configuration
   # ---------------------------------------------------------------------------
   KAFKA_ACKS: "all"
 
