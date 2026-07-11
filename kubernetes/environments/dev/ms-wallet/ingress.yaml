@@ -1,0 +1,165 @@
+# =============================================================================
+# Kubernetes Ingress Manifest
+# =============================================================================
+# File        : ingress.yaml
+# Project     : MSIMPL - Microservices Platform
+# Environment : Development (Dev)
+# Resource    : Ingress (NGINX)
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Exposes MSIMPL microservices to external clients through the NGINX Ingress
+# Controller in the Development environment.
+#
+# Description
+# -----------------------------------------------------------------------------
+# This Ingress acts as the single API entry point into the MSIMPL platform
+# during Development.
+#
+# All client requests are routed through the NGINX Ingress Controller and then
+# forwarded to the appropriate internal Kubernetes ClusterIP Service based on
+# the request path.
+#
+# Development URL
+# -----------------------------------------------------------------------------
+#
+# https://api.msimpl.local
+#
+#
+# Responsibilities
+# -----------------------------------------------------------------------------
+# - Receives external client requests.
+# - Performs path-based routing.
+# - Routes requests to internal ClusterIP Services.
+# - Provides a single API endpoint for all MSIMPL microservices.
+#
+#
+# Request Flow
+# -----------------------------------------------------------------------------
+#
+# Browser / Postman
+#         │
+#         ▼
+# https://api.msimpl.local
+#         │
+#         ▼
+# NGINX Ingress Controller
+#         │
+#         ├────────────► /wallet
+#         │                  │
+#         │                  ▼
+#         │            ms-wallet Service
+#         │
+#         ├────────────► /notification
+#         │                  │
+#         │                  ▼
+#         │        ms-notification Service
+#         │
+#         └────────────► /transaction
+#                            │
+#                            ▼
+#              ms-transaction-orchestrator Service
+#
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# - This Ingress belongs to the Development environment.
+# - Managed by Argo CD through GitOps.
+# - Never modify this resource directly inside Kubernetes.
+# - All changes must originate from the Git repository.
+# - Shared by all MSIMPL microservices.
+#
+#
+# Environment Notes
+# -----------------------------------------------------------------------------
+# Development
+#     https://api.msimpl.local
+#
+# QA
+#     https://api.qa.msimpl.company.com
+#
+# UAT
+#     https://api.uat.msimpl.company.com
+#
+# Production
+#     https://api.msimpl.company.com
+#
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
+# - NGINX Ingress Controller
+# - GitHub Actions
+# - Argo CD
+#
+#
+# Version     : 3.1.0 (LOCKED)
+# Author      : Sanjeev Kumar
+# =============================================================================
+
+apiVersion: networking.k8s.io/v1
+
+kind: Ingress
+
+metadata:
+
+  name: msimpl-ingress
+
+  labels:
+
+    app.kubernetes.io/name: msimpl-ingress
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/part-of: msimpl-platform
+
+spec:
+
+  ingressClassName: nginx
+
+  rules:
+
+    # -------------------------------------------------------------------------
+    # Development API Host
+    # -------------------------------------------------------------------------
+    - host: api.msimpl.local
+
+      http:
+
+        paths:
+
+          # -------------------------------------------------------------------
+          # Wallet Service
+          # -------------------------------------------------------------------
+          - path: /wallet
+            pathType: Prefix
+
+            backend:
+              service:
+                name: ms-wallet
+                port:
+                  number: 8080
+
+          # -------------------------------------------------------------------
+          # Notification Service
+          # -------------------------------------------------------------------
+          - path: /notification
+            pathType: Prefix
+
+            backend:
+              service:
+                name: ms-notification
+                port:
+                  number: 8081
+
+          # -------------------------------------------------------------------
+          # Transaction Orchestrator Service
+          # -------------------------------------------------------------------
+          - path: /transaction
+            pathType: Prefix
+
+            backend:
+              service:
+                name: ms-transaction-orchestrator
+                port:
+                  number: 8082
