@@ -105,7 +105,7 @@ resources:
   #   - ConfigMaps
   #   - Secrets
   # ---------------------------------------------------------------------------
-  - ../../../../applications/ms-wallet   # ✅ points to base folder, not individual files
+  - ../../applications/ms-wallet   # ✅ points to base folder, not individual files
   - ms-wallet
   - ms-notification
   - ms-transaction-orchestrator
