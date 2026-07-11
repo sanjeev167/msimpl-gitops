@@ -9,13 +9,13 @@
 #
 # Purpose
 # -----------------------------------------------------------------------------
-# Stores environment-specific, non-sensitive observability configuration for
-# the Wallet microservice used in the Development environment.
+# Stores Development environment-specific, non-sensitive observability
+# configuration consumed exclusively by the Wallet microservice.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This ConfigMap contains monitoring and observability configuration consumed
-# by the Wallet microservice.
+# This ConfigMap contains monitoring and observability configuration required
+# by the Wallet microservice during deployment.
 #
 # Typical configuration includes:
 #
@@ -24,25 +24,39 @@
 #   • Prometheus metrics configuration
 #   • Monitoring-related environment variables
 #
-# Logging configuration is maintained separately in:
+# Application logging configuration is maintained separately in:
 #
 #     config-map-common.yaml
 #
-# This ConfigMap must NEVER contain:
+# This ConfigMap MUST NEVER contain:
 #
 #   • Monitoring API Keys
 #   • Authentication Tokens
 #   • SSL Certificates
+#   • Encryption Keys
 #
-# Sensitive information must be stored in Kubernetes Secrets.
+# Sensitive information must always be stored in a Kubernetes Secret.
+#
+# This ConfigMap is referenced by the Wallet Deployment using:
+#
+#     envFrom:
+#       configMapRef:
+#         name: ms-wallet-observability-config
+#
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This ConfigMap belongs to the Development environment.
-# - Argo CD continuously reconciles this resource with the desired
-#   state stored in Git.
-# - Never edit this ConfigMap directly inside the Kubernetes cluster.
-#   All changes must originate from Git.
+# - This ConfigMap belongs exclusively to the Wallet microservice in the
+#   Development environment.
+# - It is deployed through the Wallet service Kustomization located at:
+#
+#       kubernetes/environments/dev/ms-wallet
+#
+# - Argo CD continuously reconciles this ConfigMap with the desired state
+#   stored in the GitOps repository.
+# - Never modify this ConfigMap directly inside the Kubernetes cluster.
+#   All configuration changes must originate from Git.
+#
 #
 # Compatible With
 # -----------------------------------------------------------------------------
@@ -54,7 +68,8 @@
 # - GitHub Actions
 # - Argo CD
 #
-# Version     : 3.0.0 (LOCKED)
+#
+# Version     : 4.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -80,27 +95,41 @@ metadata:
     app.kubernetes.io/name: ms-wallet
     app.kubernetes.io/component: observability-config
     app.kubernetes.io/part-of: msimpl-platform
-    
+    app.kubernetes.io/environment: dev
 
+
+# -----------------------------------------------------------------------------
+# Non-sensitive Observability Configuration
+#
+# Spring Boot automatically maps these environment variables to the
+# corresponding Actuator and Micrometer configuration properties.
+# -----------------------------------------------------------------------------
 data:
 
   # ---------------------------------------------------------------------------
-  # Spring Boot Actuator
+  # Spring Boot Actuator Endpoints
   #
   # Exposes health, information and Prometheus metrics endpoints used by
-  # Kubernetes probes and monitoring tools.
+  # Kubernetes readiness/liveness probes and monitoring systems.
   # ---------------------------------------------------------------------------
   MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,prometheus"
 
+  # ---------------------------------------------------------------------------
+  # Health Endpoint Details
+  #
+  # Displays detailed health information for monitoring tools.
+  # Development uses "always". Production environments may choose
+  # "when_authorized" based on security requirements.
+  # ---------------------------------------------------------------------------
   MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: "always"
 
   # ---------------------------------------------------------------------------
-  # Prometheus Metrics
+  # Prometheus Metrics Export
   #
   # Enables the Prometheus metrics endpoint:
   #
   #     /actuator/prometheus
   #
-  # for metrics collection.
+  # for metrics collection by Prometheus.
   # ---------------------------------------------------------------------------
   MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"

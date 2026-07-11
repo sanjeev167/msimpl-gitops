@@ -8,71 +8,33 @@
 #
 # Purpose
 # -----------------------------------------------------------------------------
-# Creates the dedicated Kubernetes namespace for the Development environment.
+# Creates the Kubernetes namespace used by all MSIMPL microservices deployed
+# in the Development environment.
 #
-# Description
+# Notes
 # -----------------------------------------------------------------------------
-# A Namespace provides logical isolation within a Kubernetes cluster.
+# This namespace is referenced by:
 #
-# All Development resources for MSIMPL are deployed into this namespace,
-# including:
-#
+#   • Argo CD Application
+#   • Kustomize
 #   • Deployments
 #   • Services
 #   • ConfigMaps
 #   • Secrets
 #   • Ingress
-#   • Persistent Volumes (where applicable)
 #
-# This namespace is environment-specific and is reused only for the
-# Development environment.
+# All namespaced resources deployed by this Kustomization must belong to this
+# namespace.
 #
-# Keeping application resources inside a dedicated namespace improves:
-#
-#   • Organization
-#   • Security
-#   • Resource management
-#   • Monitoring
-#   • Troubleshooting
-#
-# GitOps Notes
-# -----------------------------------------------------------------------------
-# - This manifest is maintained in the MSIMPL GitOps repository.
-# - Argo CD reconciles this Namespace with the desired state stored in Git.
-# - All Development resources are deployed into this namespace.
-# - This Namespace should exist before deploying application resources.
-#
-# Compatible With
-# -----------------------------------------------------------------------------
-# - Docker Desktop Kubernetes
-# - Kind
-# - Amazon EKS
-# - GitHub Actions
-# - Argo CD
-#
-# Version     : 2.0.0 (LOCKED)
-# Author      : Sanjeev Kumar
 # =============================================================================
 
 apiVersion: v1
 kind: Namespace
 
 metadata:
-
-  # ---------------------------------------------------------------------------
-  # Namespace Name
-  #
-  # Dedicated namespace for the Development environment.
-  # ---------------------------------------------------------------------------
-  name: msimpl-dev
+  name: msimpl
 
   labels:
-
-    # -------------------------------------------------------------------------
-    # Standard Kubernetes labels
-    # -------------------------------------------------------------------------
     app.kubernetes.io/name: msimpl
-
     app.kubernetes.io/part-of: microservices-platform
-
-   
+    app.kubernetes.io/environment: dev

@@ -10,20 +10,29 @@
 # -----------------------------------------------------------------------------
 # Defines the common Kubernetes Service for the Wallet microservice.
 #
-# This Service is environment-independent and is reused across
-# Development, QA, UAT and Production.
+# This Service is environment-independent and is reused across the
+# Development, QA, UAT and Production environments.
+#
+# Environment-specific resources such as:
+#
+#   • Namespace
+#   • Ingress
+#
+# are supplied by the selected environment through its Kustomization.
+#
 #
 # Description
 # -----------------------------------------------------------------------------
-# This Service provides a stable internal network endpoint for the
-# Wallet microservice.
+# This Service provides a stable internal network endpoint for the Wallet
+# microservice.
 #
 # Responsibilities
 # -----------------------------------------------------------------------------
-# - Load balances traffic across all healthy Wallet Pods.
-# - Provides stable DNS-based service discovery.
-# - Enables communication between Kubernetes microservices.
-# - Acts as the backend Service for the Ingress Controller.
+# • Load balances traffic across all healthy Wallet Pods.
+# • Provides stable DNS-based service discovery.
+# • Enables communication between Kubernetes microservices.
+# • Serves as the backend Service for the Wallet Ingress.
+#
 #
 # Service Discovery
 # -----------------------------------------------------------------------------
@@ -33,18 +42,19 @@
 #
 #     http://ms-wallet:8080
 #
-# If cross-namespace communication is required, Kubernetes automatically
-# provides the fully qualified DNS name:
+# For cross-namespace communication:
 #
 #     ms-wallet.<namespace>.svc.cluster.local
 #
+#
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This Service is common for all environments.
-# - Argo CD continuously monitors this manifest and reconciles the
-#   live Kubernetes Service with the desired state defined here.
+# - This Service is shared across all environments.
+# - Argo CD deploys this Service together with the Wallet Deployment using
+#   the environment-specific Kustomization.
 # - Never modify this Service directly inside the Kubernetes cluster.
 #   All changes must originate from Git.
+#
 #
 # Compatible With
 # -----------------------------------------------------------------------------
@@ -54,7 +64,8 @@
 # - GitHub Actions
 # - Argo CD
 #
-# Version     : 2.0.0 (LOCKED)
+#
+# Version     : 3.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
@@ -62,10 +73,13 @@ apiVersion: v1
 kind: Service
 
 metadata:
+
   name: ms-wallet
 
   labels:
-    app: ms-wallet
+    app.kubernetes.io/name: ms-wallet
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: msimpl-platform
 
 spec:
 
@@ -74,21 +88,17 @@ spec:
   #
   # ClusterIP exposes the application only inside the Kubernetes cluster.
   #
-  # External client requests are routed through the Ingress Controller.
+  # External traffic reaches this Service through the Wallet Ingress.
   # ---------------------------------------------------------------------------
   type: ClusterIP
 
   # ---------------------------------------------------------------------------
   # Pod Selector
   #
-  # Routes traffic to Pods having:
-  #
-  #     app=ms-wallet
-  #
-  # This label must match the labels defined in deployment.yaml.
+  # This selector MUST match the labels defined in deployment.yaml.
   # ---------------------------------------------------------------------------
   selector:
-    app: ms-wallet
+    app.kubernetes.io/name: ms-wallet
 
   ports:
 
@@ -96,10 +106,10 @@ spec:
     # Service Port Mapping
     #
     # port
-    #   Port exposed by the Kubernetes Service.
+    #     Port exposed by the Kubernetes Service.
     #
     # targetPort
-    #   Container port exposed by the Wallet application.
+    #     Container port exposed by the Wallet application.
     # -------------------------------------------------------------------------
     - name: http
       protocol: TCP

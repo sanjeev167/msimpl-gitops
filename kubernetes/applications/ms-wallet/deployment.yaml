@@ -10,44 +10,46 @@
 # -----------------------------------------------------------------------------
 # Defines the common Deployment for the Wallet microservice.
 #
-# This Deployment is environment-independent and is reused across
-# Development, QA, UAT and Production.
+# This Deployment is environment-independent and is reused across the
+# Development, QA, UAT and Production environments.
 #
-# Environment-specific configuration such as:
+# Environment-specific resources including:
 #
-#   - Namespace
-#   - Database Configuration
-#   - Kafka Configuration
-#   - Secrets
-#   - Ingress
+#   • Namespace
+#   • ConfigMaps
+#   • Secrets
+#   • Ingress
 #
-# is supplied from:
-#
-# kubernetes/environments/<environment>/
+# are supplied by the selected environment through its Kustomization.
 #
 # Description
 # -----------------------------------------------------------------------------
-# This Deployment defines the desired runtime state of the Wallet microservice.
+# This Deployment defines the desired runtime state of the Wallet
+# microservice.
 #
 # It specifies:
 #
-#   - Desired Pod replicas
-#   - Rolling Update deployment strategy
-#   - Docker image
-#   - Resource requests & limits
-#   - Startup, Readiness and Liveness probes
-#   - ConfigMaps and Secrets
-#   - Graceful application shutdown
+#   • Pod replicas
+#   • Rolling Update strategy
+#   • Docker image
+#   • Resource requests and limits
+#   • Startup, Readiness and Liveness probes
+#   • Environment configuration through ConfigMaps and Secrets
+#   • Graceful application shutdown
 #
 # GitOps Notes
 # -----------------------------------------------------------------------------
-# - This Deployment is common for all environments.
-# - GitHub Actions updates ONLY the Docker image tag after publishing
-#   a new image to Docker Hub.
-# - Argo CD deploys this Deployment using the configuration supplied
-#   by the selected environment.
+# - This Deployment is shared across all environments.
+# - GitHub Actions updates ONLY the Docker image tag after publishing a new
+#   image to Docker Hub.
+# - Argo CD deploys this Deployment using the environment-specific
+#   configuration supplied by:
+#
+#       kubernetes/environments/<environment>/<service>
+#
 # - Never modify this resource directly inside the Kubernetes cluster.
 #   All deployment changes must originate from Git.
+#
 #
 # Compatible With
 # -----------------------------------------------------------------------------
@@ -57,122 +59,160 @@
 # - GitHub Actions
 # - Argo CD
 #
-# Version     : 3.0.0 (LOCKED)
+#
+# Version     : 4.0.0 (LOCKED)
 # Author      : Sanjeev Kumar
 # =============================================================================
 
 apiVersion: apps/v1
 kind: Deployment
+
 metadata:
+
   name: ms-wallet
+
   labels:
-    app: ms-wallet
+    app.kubernetes.io/name: ms-wallet
+    app.kubernetes.io/component: application
+    app.kubernetes.io/part-of: msimpl-platform
+
 spec:
+
   # ---------------------------------------------------------------------------
   # Desired number of Pod replicas.
-  #
-  # Environment-specific replica counts may be overridden later through
-  # Kustomize overlays without modifying this Deployment.
   # ---------------------------------------------------------------------------
   replicas: 1
+
   # ---------------------------------------------------------------------------
   # Number of previous ReplicaSets retained for rollback.
   # ---------------------------------------------------------------------------
   revisionHistoryLimit: 5
+
   # ---------------------------------------------------------------------------
   # Rolling Update Strategy
   # ---------------------------------------------------------------------------
   strategy:
     type: RollingUpdate
+
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
+
   selector:
+
     matchLabels:
-      app: ms-wallet
+      app.kubernetes.io/name: ms-wallet
+
   template:
+
     metadata:
+
       labels:
-        app: ms-wallet
+        app.kubernetes.io/name: ms-wallet
+        app.kubernetes.io/component: application
+        app.kubernetes.io/part-of: msimpl-platform
+
     spec:
+
       # -----------------------------------------------------------------------
       # Allow Spring Boot to shut down gracefully before Pod termination.
       # -----------------------------------------------------------------------
       terminationGracePeriodSeconds: 30
+
       containers:
+
         - name: ms-wallet
+
           # -------------------------------------------------------------------
           # GitHub Actions automatically updates ONLY the image tag.
-          # The same Docker image is deployed to all environments.
           # -------------------------------------------------------------------
           image: sanjeev777/ms-wallet:v0.0.1-SNAPSHOT-d5eccab
+
           imagePullPolicy: Always
+
           ports:
+
             - containerPort: 8080
+
           # -------------------------------------------------------------------
           # Environment Configuration
           #
-          # The ConfigMaps and Secrets referenced below are supplied by the
-          # selected deployment environment (Dev / QA / UAT / Prod).
-          #
-          # Their names remain identical across environments while their
+          # These resources are supplied by the selected deployment environment.
+          # Their names remain identical across all environments while their
           # contents differ.
           # -------------------------------------------------------------------
           envFrom:
+
             # Common Configuration
             - configMapRef:
                 name: ms-wallet-common-config
+
             # Database Configuration
             - configMapRef:
                 name: ms-wallet-db-config
+
             # Kafka Configuration
             - configMapRef:
                 name: ms-wallet-kafka-config
+
             # Observability Configuration
             - configMapRef:
                 name: ms-wallet-observability-config
+
             # Sensitive Configuration
             - secretRef:
-                name: msimpl-secret
+                name: ms-wallet-secret
+
           # -------------------------------------------------------------------
           # Resource Requests & Limits
           # -------------------------------------------------------------------
           resources:
+
             requests:
               cpu: "200m"
               memory: "384Mi"
+
             limits:
               cpu: "500m"
               memory: "768Mi"
+
           # -------------------------------------------------------------------
           # Startup Probe
           # -------------------------------------------------------------------
           startupProbe:
+
             httpGet:
               path: /actuator/health
               port: 8080
+
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 30
+
           # -------------------------------------------------------------------
           # Readiness Probe
           # -------------------------------------------------------------------
           readinessProbe:
+
             httpGet:
               path: /actuator/health/readiness
               port: 8080
+
             initialDelaySeconds: 20
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
+
           # -------------------------------------------------------------------
           # Liveness Probe
           # -------------------------------------------------------------------
           livenessProbe:
+
             httpGet:
               path: /actuator/health/liveness
               port: 8080
+
             initialDelaySeconds: 60
             periodSeconds: 20
             timeoutSeconds: 5

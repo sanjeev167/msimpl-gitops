@@ -1,15 +1,93 @@
+# =============================================================================
+# Kustomization Manifest
+# =============================================================================
+# File        : kustomization.yaml
+# Project     : MSIMPL - Microservices Platform
+# Service     : ms-wallet
+# Resource    : Kustomization
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Defines the reusable base Kubernetes manifests for the Wallet microservice.
+#
+# Description
+# -----------------------------------------------------------------------------
+# This Kustomization assembles the common application resources shared across
+# all deployment environments.
+#
+# Included Resources
+# -----------------------------------------------------------------------------
+#
+#   • Deployment
+#   • Service
+#
+# These resources are environment-independent and contain no environment-
+# specific configuration such as:
+#
+#   • Namespace
+#   • ConfigMaps
+#   • Secrets
+#   • Ingress
+#
+# Environment-specific resources are maintained separately under:
+#
+#     kubernetes/environments/<environment>/ms-wallet
+#
+# and are composed together by the environment-specific Kustomization.
+#
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# This Kustomization is referenced by the environment-specific Wallet
+# Kustomization.
+#
+# Example:
+#
+#     kubernetes/environments/dev/ms-wallet/kustomization.yaml
+#
+# Argo CD builds the environment-specific Kustomization, which in turn
+# includes this base Kustomization.
+#
+#
+# Deployment Flow
+# -----------------------------------------------------------------------------
+#
+# Argo CD
+#      │
+#      ▼
+# environments/dev/ms-wallet
+#      │
+#      ▼
+# kustomization.yaml
+#      │
+#      ▼
+# ../../../applications/ms-wallet
+#      │
+#      ├── deployment.yaml
+#      └── service.yaml
+#
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Kustomize
+# - Argo CD
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
+#
+#
+# Version     : 2.0.0 (LOCKED)
+# Author      : Sanjeev Kumar
+# =============================================================================
+
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Environment-independent resources
+# -----------------------------------------------------------------------------
+# Shared Application Resources
+#
+# These resources are reused across all deployment environments.
+# -----------------------------------------------------------------------------
 resources:
   - deployment.yaml
   - service.yaml
-
-# Common labels applied to all resources
-commonLabels:
-  app: ms-wallet
-  tier: backend
-
-# Optional: prefix to distinguish base resources
-#namePrefix: base-
