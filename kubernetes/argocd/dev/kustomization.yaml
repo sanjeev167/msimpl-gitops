@@ -51,7 +51,7 @@ kind: Kustomization
 # Child Argo CD Applications
 # -----------------------------------------------------------------------------
 resources:
-
+  - infrastructure-application.yaml
   - ms-wallet-application.yaml
   - ms-notification-application.yaml
   - ms-transaction-orchestrator-application.yaml
