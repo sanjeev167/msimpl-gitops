@@ -74,7 +74,7 @@ kind: Service
 
 metadata:
 
-  name: ms-wallet
+  name: ms-wallet-service
 
   labels:
     app.kubernetes.io/name: ms-wallet
