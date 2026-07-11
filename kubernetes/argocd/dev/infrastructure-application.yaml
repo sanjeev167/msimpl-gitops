@@ -1,0 +1,170 @@
+# =============================================================================
+# Argo CD Application Manifest
+# =============================================================================
+# File        : infrastructure-application.yaml
+# Project     : MSIMPL - Microservices Platform
+# Environment : Development (Dev)
+# Application : infrastructure
+# Namespace   : argocd
+# Resource    : Argo CD Application
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Registers the shared Development Infrastructure with Argo CD for GitOps
+# deployment and continuous reconciliation.
+#
+# Description
+# -----------------------------------------------------------------------------
+# This Argo CD Application manages the shared Kubernetes infrastructure
+# required by all MSIMPL microservices deployed in the Development
+# environment.
+#
+# Unlike individual microservice applications, this Application owns only
+# shared infrastructure resources and never deploys application workloads.
+#
+# Current Infrastructure Resources
+# -----------------------------------------------------------------------------
+#
+#   • Namespace
+#
+# Future Infrastructure Resources
+# -----------------------------------------------------------------------------
+#
+#   • StorageClass
+#   • ResourceQuota
+#   • LimitRange
+#   • NetworkPolicy
+#   • ClusterIssuer
+#   • TLS Certificates
+#   • External Secrets
+#   • Shared RBAC Resources
+#
+#
+# GitOps Deployment Flow
+# -----------------------------------------------------------------------------
+#
+# Developer
+#      │
+#      ▼
+# Git Push
+#      │
+#      ▼
+# GitHub Actions
+#      │
+#      ▼
+# GitOps Repository
+#      │
+#      ▼
+# Argo CD Infrastructure Application
+#      │
+#      ▼
+# kubernetes/environments/dev/infrastructure
+#      │
+#      ▼
+# Infrastructure Kustomization
+#      │
+#      ▼
+# Shared Infrastructure
+#      │
+#      ▼
+# Namespace : msimpl
+#      │
+#      ├────────────► ms-wallet
+#      ├────────────► ms-notification
+#      └────────────► ms-transaction-orchestrator
+#
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# • This Application owns ONLY the shared infrastructure resources.
+#
+# • No microservice Application manages the Namespace resource.
+#
+# • All microservice Applications deploy their workloads into the Namespace
+#   created by this Infrastructure Application.
+#
+# • This separation prevents Argo CD ownership conflicts and eliminates
+#   OutOfSync conditions caused by multiple Applications managing the same
+#   Namespace.
+#
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Argo CD 2.x+
+# - Kustomize
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
+#
+#
+# Version     : 1.0.0 (LOCKED)
+# Author      : Sanjeev Kumar
+# =============================================================================
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+
+  # ---------------------------------------------------------------------------
+  # Argo CD Application Name
+  # ---------------------------------------------------------------------------
+  name: dev-infrastructure
+
+  # ---------------------------------------------------------------------------
+  # Namespace where the Argo CD Application CR is stored.
+  # ---------------------------------------------------------------------------
+  namespace: argocd
+
+spec:
+
+  # ---------------------------------------------------------------------------
+  # Argo CD Project
+  # ---------------------------------------------------------------------------
+  project: default
+
+  source:
+
+    # -------------------------------------------------------------------------
+    # GitOps Repository
+    # -------------------------------------------------------------------------
+    repoURL: https://github.com/sanjeev167/msimpl-gitops.git
+
+    # -------------------------------------------------------------------------
+    # Git Branch
+    # -------------------------------------------------------------------------
+    targetRevision: main
+
+    # -------------------------------------------------------------------------
+    # Infrastructure Kustomization
+    # -------------------------------------------------------------------------
+    path: kubernetes/environments/dev/infrastructure
+
+  destination:
+
+    # -------------------------------------------------------------------------
+    # Target Kubernetes Cluster
+    # -------------------------------------------------------------------------
+    server: https://kubernetes.default.svc
+
+    # -------------------------------------------------------------------------
+    # Namespace
+    #
+    # Namespace resources are cluster-scoped. The destination namespace is
+    # retained for consistency with other Argo CD Applications.
+    # -------------------------------------------------------------------------
+    namespace: msimpl
+
+  # ---------------------------------------------------------------------------
+  # Synchronization Policy
+  #
+  # Module 4
+  #   • Manual Synchronization
+  #
+  # Module 5
+  #   • Automated Synchronization
+  #   • Self Heal
+  #   • Prune
+  # ---------------------------------------------------------------------------
+
+  # syncPolicy: {}

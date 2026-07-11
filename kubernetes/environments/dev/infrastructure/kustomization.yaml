@@ -1,0 +1,101 @@
+# =============================================================================
+# Kustomization Manifest
+# =============================================================================
+# File        : kustomization.yaml
+# Project     : MSIMPL - Microservices Platform
+# Environment : Development (Dev)
+# Module      : Infrastructure
+# Resource    : Kustomization
+#
+# Purpose
+# -----------------------------------------------------------------------------
+# Assembles the shared Kubernetes infrastructure resources required by the
+# Development environment.
+#
+# Description
+# -----------------------------------------------------------------------------
+# This Kustomization represents the Infrastructure layer of the Development
+# environment.
+#
+# It contains Kubernetes resources that are shared by all MSIMPL
+# microservices and must be created before any application workloads are
+# deployed.
+#
+# Current Infrastructure Resources
+# -----------------------------------------------------------------------------
+#
+#   • Namespace
+#
+# Future Infrastructure Resources
+# -----------------------------------------------------------------------------
+#
+# As the platform evolves, additional shared resources may be added here,
+# including:
+#
+#   • StorageClass
+#   • ResourceQuota
+#   • LimitRange
+#   • NetworkPolicy
+#   • ClusterIssuer
+#   • TLS Certificates
+#   • External Secrets
+#   • Shared RBAC Resources
+#
+#
+# GitOps Architecture
+# -----------------------------------------------------------------------------
+#
+# Bootstrap Application
+#          │
+#          ▼
+# Infrastructure Application
+#          │
+#          ▼
+# Infrastructure Kustomization
+#          │
+#          └── namespace.yaml
+#                   │
+#                   ▼
+#              Namespace : msimpl
+#                   │
+#                   ├────────────► ms-wallet
+#                   ├────────────► ms-notification
+#                   └────────────► ms-transaction-orchestrator
+#
+#
+# GitOps Notes
+# -----------------------------------------------------------------------------
+# - This Kustomization is referenced by the Development Infrastructure
+#   Argo CD Application.
+#
+# - It is synchronized before the MSIMPL microservice applications.
+#
+# - Infrastructure resources are owned exclusively by the Infrastructure
+#   Application.
+#
+# - Microservice Applications deploy their workloads into the shared
+#   namespace but never manage the Namespace resource itself.
+#
+#
+# Compatible With
+# -----------------------------------------------------------------------------
+# - Kustomize
+# - Argo CD
+# - Docker Desktop Kubernetes
+# - Kind
+# - Amazon EKS
+#
+#
+# Version     : 1.0.0 (LOCKED)
+# Author      : Sanjeev Kumar
+# =============================================================================
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# -----------------------------------------------------------------------------
+# Shared Infrastructure Resources
+# -----------------------------------------------------------------------------
+resources:
+
+  - namespace.yaml
